@@ -166,12 +166,54 @@ function TabButton({ active, onClick, children, icon }: TabButtonProps) {
 
 function LoadingState() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 sm:py-20">
-      <div className="relative w-12 h-12 sm:w-16 sm:h-16">
-        <div className="absolute inset-0 rounded-full border-4 border-slate-700" />
-        <div className="absolute inset-0 rounded-full border-4 border-t-cyan-500 animate-spin" />
+    <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
+      {/* 순위 목록 스켈레톤 */}
+      <div className="space-y-2 sm:space-y-3">
+        <div className="flex items-center gap-2 mb-3 sm:mb-4">
+          <div className="w-1.5 h-5 sm:h-6 rounded-full bg-slate-700 animate-pulse" />
+          <div className="h-5 sm:h-6 w-40 bg-slate-700 rounded animate-pulse" />
+        </div>
+
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div
+            key={i}
+            className="p-3 sm:p-4 rounded-xl border border-slate-700/50 bg-slate-800/30"
+            style={{ animationDelay: `${i * 50}ms` }}>
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* 순위 배지 스켈레톤 */}
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-slate-700 animate-pulse flex-shrink-0" />
+
+              {/* 텍스트 스켈레톤 */}
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="h-4 sm:h-5 w-24 sm:w-32 bg-slate-700 rounded animate-pulse" />
+                <div className="h-3 sm:h-4 w-48 sm:w-64 bg-slate-700/50 rounded animate-pulse" />
+              </div>
+
+              {/* 화살표 스켈레톤 */}
+              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-slate-700 rounded animate-pulse flex-shrink-0" />
+            </div>
+          </div>
+        ))}
       </div>
-      <p className="mt-3 sm:mt-4 text-slate-400 text-xs sm:text-sm">데이터를 불러오는 중...</p>
+
+      {/* 상세 패널 스켈레톤 */}
+      <div className="hidden lg:block rounded-xl border border-dashed border-slate-700 bg-slate-800/20 p-6 sm:p-8">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-slate-700 animate-pulse" />
+            <div className="space-y-2 flex-1">
+              <div className="h-6 w-32 bg-slate-700 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-slate-700/50 rounded animate-pulse" />
+            </div>
+          </div>
+          <div className="space-y-3 pt-4">
+            <div className="h-4 w-20 bg-slate-700 rounded animate-pulse" />
+            <div className="h-3 w-full bg-slate-700/50 rounded animate-pulse" />
+            <div className="h-3 w-4/5 bg-slate-700/50 rounded animate-pulse" />
+            <div className="h-3 w-3/4 bg-slate-700/50 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -290,12 +290,31 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
         {/* 컨텐츠 */}
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[60vh] overflow-y-auto">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-8 sm:py-12">
-              <div className="relative w-10 h-10 sm:w-12 sm:h-12">
-                <div className="absolute inset-0 rounded-full border-4 border-slate-700" />
-                <div className="absolute inset-0 rounded-full border-4 border-t-cyan-500 animate-spin" />
+            <div className="space-y-4 sm:space-y-6">
+              {/* 요약 스켈레톤 */}
+              <div className="space-y-2">
+                <div className="h-4 w-16 bg-slate-700 rounded animate-pulse" />
+                <div className="h-3 w-full bg-slate-700/50 rounded animate-pulse" />
+                <div className="h-3 w-4/5 bg-slate-700/50 rounded animate-pulse" />
               </div>
-              <p className="mt-3 sm:mt-4 text-slate-400 text-xs sm:text-sm">상세 정보를 불러오는 중...</p>
+              {/* 이유 스켈레톤 */}
+              <div className="space-y-2">
+                <div className="h-4 w-28 bg-slate-700 rounded animate-pulse" />
+                <div className="h-3 w-full bg-slate-700/50 rounded animate-pulse" />
+                <div className="h-3 w-3/4 bg-slate-700/50 rounded animate-pulse" />
+              </div>
+              {/* 관련 정보 스켈레톤 */}
+              <div className="space-y-2">
+                <div className="h-4 w-20 bg-slate-700 rounded animate-pulse" />
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="p-2 sm:p-3 rounded-lg bg-slate-800/50 border border-slate-700/30">
+                      <div className="h-3 w-12 bg-slate-700/50 rounded animate-pulse mb-1" />
+                      <div className="h-4 w-20 bg-slate-700 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : analysis ? (
             <>
