@@ -51,7 +51,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+    <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950">
       {/* 배경 효과 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-60 sm:w-80 h-60 sm:h-80 bg-cyan-500/10 rounded-full blur-3xl" />
@@ -155,7 +155,7 @@ function TabButton({ active, onClick, children, icon }: TabButtonProps) {
         transition-all duration-200 ease-out
         ${
           active
-            ? "bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
+            ? "bg-linear-to-r from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
             : "text-slate-400 hover:text-white hover:bg-slate-700/50"
         }
       `}>
@@ -182,7 +182,7 @@ function LoadingState() {
             style={{ animationDelay: `${i * 50}ms` }}>
             <div className="flex items-center gap-2 sm:gap-4">
               {/* 순위 배지 스켈레톤 */}
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-slate-700 animate-pulse flex-shrink-0" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-slate-700 animate-pulse shrink-0" />
 
               {/* 텍스트 스켈레톤 */}
               <div className="flex-1 min-w-0 space-y-2">
@@ -191,7 +191,7 @@ function LoadingState() {
               </div>
 
               {/* 화살표 스켈레톤 */}
-              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-slate-700 rounded animate-pulse flex-shrink-0" />
+              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-slate-700 rounded animate-pulse shrink-0" />
             </div>
           </div>
         ))}

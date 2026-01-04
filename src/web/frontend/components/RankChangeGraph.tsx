@@ -134,7 +134,7 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
       {/* 헤더 */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
-          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-cyan-400 to-violet-500" />
+          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-linear-to-b from-cyan-400 to-violet-500" />
           <span className="hidden xs:inline">실시간 검색어 순위 변동 (최근 24시간)</span>
           <span className="xs:hidden">순위 변동 (24시간)</span>
         </h2>
@@ -177,11 +177,11 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
                     onClick={() => toggleKeyword(keyword)}
                     className={`
                     flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                    transition-all duration-200
+                    transition-all duration-200 border
                     ${
                       selectedKeywords.has(keyword)
-                        ? "text-white shadow-lg"
-                        : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-700/50"
+                        ? "text-white shadow-lg border-transparent"
+                        : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border-slate-700/50"
                     }
                   `}
                     style={{
@@ -211,11 +211,11 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
                     onClick={() => toggleKeyword(keyword)}
                     className={`
                     flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                    transition-all duration-200
+                    transition-all duration-200 border
                     ${
                       selectedKeywords.has(keyword)
-                        ? "text-white shadow-lg"
-                        : "bg-slate-800/50 text-slate-600 hover:text-slate-400 border border-slate-700/30 border-dashed"
+                        ? "text-white shadow-lg border-transparent"
+                        : "bg-slate-800/50 text-slate-600 hover:text-slate-400 border-slate-700/30 border-dashed"
                     }
                   `}
                     style={{
@@ -321,12 +321,12 @@ function CustomTooltip({ active, payload, label, keywordColors }: CustomTooltipP
         {sortedPayload.map((entry) => (
           <div key={entry.dataKey} className="flex items-center gap-2 sm:gap-3">
             <div
-              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
+              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0"
               style={{ backgroundColor: keywordColors[entry.dataKey] }}
             />
             <span className="text-slate-300 text-[10px] sm:text-sm flex-1 min-w-0 truncate">{entry.dataKey}</span>
             <span
-              className="font-bold mono text-[10px] sm:text-sm flex-shrink-0"
+              className="font-bold mono text-[10px] sm:text-sm shrink-0"
               style={{ color: keywordColors[entry.dataKey] }}>
               {entry.value !== null ? `#${entry.value}` : "-"}
             </span>

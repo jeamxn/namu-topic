@@ -91,7 +91,7 @@ export default function TrendingRecords({ data, onPageChange }: TrendingRecordsP
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
-          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-cyan-400 to-violet-500" />
+          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-linear-to-b from-cyan-400 to-violet-500" />
           실시간 검색어 순위 기록
         </h2>
         <div className="text-xs sm:text-sm text-slate-500">
@@ -149,14 +149,14 @@ function RecordCard({ record, formatDateTime, getRelativeTime, isLatest, onKeywo
         relative overflow-hidden rounded-xl border transition-all duration-300
         ${
           isLatest
-            ? "bg-gradient-to-r from-cyan-500/5 to-violet-500/5 border-cyan-500/30"
+            ? "bg-linear-to-r from-cyan-500/5 to-violet-500/5 border-cyan-500/30"
             : "bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50 hover:border-slate-600"
         }
       `}>
       {/* 최신 배지 */}
       {isLatest && (
         <div className="absolute top-0 right-0">
-          <div className="px-2 sm:px-3 py-0.5 sm:py-1 bg-gradient-to-r from-cyan-500 to-violet-500 text-white text-[10px] sm:text-xs font-medium rounded-bl-lg">
+          <div className="px-2 sm:px-3 py-0.5 sm:py-1 bg-linear-to-r from-cyan-500 to-violet-500 text-white text-[10px] sm:text-xs font-medium rounded-bl-lg">
             최신
           </div>
         </div>
@@ -192,14 +192,14 @@ function RecordCard({ record, formatDateTime, getRelativeTime, isLatest, onKeywo
               className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg bg-slate-900/50 border border-slate-700/30 hover:border-cyan-500/50 hover:bg-slate-800/50 transition-all cursor-pointer text-left group">
               <span
                 className={`
-                  w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center text-[10px] sm:text-xs font-bold mono flex-shrink-0
+                  w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center text-[10px] sm:text-xs font-bold mono shrink-0
                   ${
                     item.rank === 1
-                      ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white"
+                      ? "bg-linear-to-br from-amber-400 to-orange-500 text-white"
                       : item.rank === 2
-                        ? "bg-gradient-to-br from-slate-300 to-slate-400 text-slate-800"
+                        ? "bg-linear-to-br from-slate-300 to-slate-400 text-slate-800"
                         : item.rank === 3
-                          ? "bg-gradient-to-br from-amber-600 to-amber-700 text-white"
+                          ? "bg-linear-to-br from-amber-600 to-amber-700 text-white"
                           : "bg-slate-700 text-slate-400"
                   }
                 `}>
@@ -249,9 +249,9 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* 모달 */}
-      <div className="relative w-full max-w-lg max-h-[85vh] overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 shadow-2xl">
+      <div className="relative w-full max-w-lg max-h-[85vh] overflow-hidden rounded-2xl border border-slate-700/50 bg-linear-to-br from-slate-800 to-slate-900 shadow-2xl">
         {/* 헤더 */}
-        <div className="relative p-4 sm:p-6 border-b border-slate-700/50 bg-gradient-to-r from-cyan-500/5 to-violet-500/5">
+        <div className="relative p-4 sm:p-6 border-b border-slate-700/50 bg-linear-to-r from-cyan-500/5 to-violet-500/5">
           <button
             onClick={onClose}
             className="absolute top-3 sm:top-4 right-3 sm:right-4 w-8 h-8 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
@@ -261,7 +261,7 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
           </button>
 
           <div className="flex items-center gap-3 sm:gap-4 pr-10">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center font-bold text-white text-base sm:text-lg mono shadow-lg flex-shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br from-cyan-400 to-violet-500 flex items-center justify-center font-bold text-white text-base sm:text-lg mono shadow-lg shrink-0">
               {rank}
             </div>
             <div className="min-w-0">
@@ -549,7 +549,7 @@ function Pagination({ current, total, onChange }: PaginationProps) {
                 w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-medium text-xs sm:text-sm transition-all mono
                 ${
                   current === page
-                    ? "bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
+                    ? "bg-linear-to-r from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
                     : "bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-white border border-slate-700/50"
                 }
               `}>

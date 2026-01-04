@@ -20,7 +20,7 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
 
   const getRankBadgeStyle = (rank: number) => {
     if (rank <= 3) {
-      return `bg-gradient-to-br ${getRankColor(rank)} text-white shadow-lg`;
+      return `bg-linear-to-br ${getRankColor(rank)} text-white shadow-lg`;
     }
     return "bg-slate-800 text-slate-400 border border-slate-700";
   };
@@ -30,7 +30,7 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
       {/* 순위 목록 */}
       <div className="space-y-2 sm:space-y-3">
         <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2 mb-3 sm:mb-4">
-          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-cyan-400 to-violet-500" />
+          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-linear-to-b from-cyan-400 to-violet-500" />
           실시간 검색어 TOP 10
         </h2>
 
@@ -47,7 +47,7 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
                   p-3 sm:p-4 rounded-xl border transition-all duration-300 text-left
                   ${
                     selectedKeyword?._id === item._id
-                      ? "bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border-cyan-500/50 shadow-lg shadow-cyan-500/10"
+                      ? "bg-linear-to-r from-cyan-500/10 to-violet-500/10 border-cyan-500/50 shadow-lg shadow-cyan-500/10"
                       : "bg-slate-800/30 border-slate-700/50 hover:bg-slate-800/50 hover:border-slate-600"
                   }
                 `}
@@ -59,7 +59,7 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
                   <div
                     className={`
                       w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center
-                      font-bold text-xs sm:text-sm mono flex-shrink-0 ${getRankBadgeStyle(item.rank)}
+                      font-bold text-xs sm:text-sm mono shrink-0 ${getRankBadgeStyle(item.rank)}
                     `}>
                     {item.rank}
                   </div>
@@ -78,14 +78,14 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
 
                   {/* 카테고리 태그 - 태블릿 이상에서만 표시 */}
                   {item.aiAnalysis?.relatedInfo?.category && (
-                    <span className="hidden md:inline-flex px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-violet-500/20 text-violet-300 border border-violet-500/30 flex-shrink-0">
+                    <span className="hidden md:inline-flex px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-violet-500/20 text-violet-300 border border-violet-500/30 shrink-0">
                       {item.aiAnalysis.relatedInfo.category}
                     </span>
                   )}
 
                   {/* 화살표 */}
                   <svg
-                    className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 flex-shrink-0 ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 shrink-0 ${
                       selectedKeyword?._id === item._id
                         ? "text-cyan-400 rotate-90"
                         : "text-slate-600 group-hover:text-slate-400"
@@ -151,9 +151,9 @@ function KeywordDetail({ item, onClose }: KeywordDetailProps) {
   const analysis = item.aiAnalysis;
 
   return (
-    <div className="rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-sm overflow-hidden">
+    <div className="rounded-xl border border-slate-700/50 bg-linear-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-sm overflow-hidden">
       {/* 헤더 */}
-      <div className="relative p-4 sm:p-6 border-b border-slate-700/50 bg-gradient-to-r from-cyan-500/5 to-violet-500/5">
+      <div className="relative p-4 sm:p-6 border-b border-slate-700/50 bg-linear-to-r from-cyan-500/5 to-violet-500/5">
         <button
           onClick={onClose}
           className="absolute top-3 sm:top-4 right-3 sm:right-4 w-8 h-8 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
@@ -163,7 +163,7 @@ function KeywordDetail({ item, onClose }: KeywordDetailProps) {
         </button>
 
         <div className="flex items-center gap-3 sm:gap-4 pr-10">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center font-bold text-white text-base sm:text-lg mono shadow-lg flex-shrink-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br from-cyan-400 to-violet-500 flex items-center justify-center font-bold text-white text-base sm:text-lg mono shadow-lg shrink-0">
             {item.rank}
           </div>
           <div className="min-w-0">

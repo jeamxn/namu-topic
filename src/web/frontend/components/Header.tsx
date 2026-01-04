@@ -15,7 +15,7 @@ export default function Header({ lastUpdated }: HeaderProps) {
           <div className="flex items-center gap-3 sm:gap-4">
             {/* 로고/아이콘 */}
             <div className="relative">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br from-cyan-400 to-violet-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
@@ -30,7 +30,7 @@ export default function Header({ lastUpdated }: HeaderProps) {
             </div>
 
             <div>
-              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-2xl font-bold bg-linear-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 나무위키 실시간 검색어
               </h1>
               <p className="text-slate-500 text-xs sm:text-sm mt-0.5 hidden xs:block">
