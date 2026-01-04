@@ -1,0 +1,75 @@
+name: namu-topic-prod
+
+services:
+  app:
+    container_name: namu-topic-app
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/namu_topic
+      - REDIS_URL=redis://redis:6379
+      - FLARESOLVERR_URL=http://proxy:8191/v1
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      proxy:
+        condition: service_started
+    networks:
+      - namu-topic-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: namu-topic-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - namu-topic-network
+
+  proxy:
+    container_name: namu-topic-proxy
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Asia/Seoul
+    networks:
+      - namu-topic-network
+
+  mongodb:
+    container_name: namu-topic-mongodb
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=namu_topic
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - namu-topic-network
+
+volumes:
+  redis_data:
+  mongodb_data:
+
+networks:
+  namu-topic-network:
+    driver: bridge
+
