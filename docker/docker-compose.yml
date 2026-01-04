@@ -10,8 +10,7 @@ services:
     ports:
       - "3001:3001"
     env_file:
-      - path: ../.env
-        required: false
+      - ./.env
     environment:
       - NODE_ENV=production
     depends_on:
