@@ -17,16 +17,12 @@ FROM oven/bun:1.3.3-alpine AS production
 
 WORKDIR /app
 
-# 보안을 위한 non-root 유저 생성
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S bun -u 1001 -G nodejs
-
-# 빌드 결과물 복사
-COPY --from=builder --chown=bun:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=bun:nodejs /app/package.json ./
-COPY --from=builder --chown=bun:nodejs /app/src ./src
-COPY --from=builder --chown=bun:nodejs /app/public ./public
-COPY --from=builder --chown=bun:nodejs /app/tsconfig.json ./
+# 빌드 결과물 복사 (oven/bun 이미지에 이미 bun 유저 존재)
+COPY --from=builder --chown=bun:bun /app/node_modules ./node_modules
+COPY --from=builder --chown=bun:bun /app/package.json ./
+COPY --from=builder --chown=bun:bun /app/src ./src
+COPY --from=builder --chown=bun:bun /app/public ./public
+COPY --from=builder --chown=bun:bun /app/tsconfig.json ./
 
 # non-root 유저로 전환
 USER bun
