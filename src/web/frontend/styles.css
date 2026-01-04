@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Tailwind CSS 4.x: 스캔할 소스 경로 지정 */
+@source "./**/*.tsx";
+@source "../public/**/*.html";
+
