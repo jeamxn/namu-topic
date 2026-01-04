@@ -1,12 +1,7 @@
 import * as cheerio from "cheerio";
 
 import instance from "./instance";
-import type {
-  ArcaComment,
-  ArcaPost,
-  ArcaPostDetail,
-  SearchReasonResult,
-} from "./types";
+import type { ArcaComment, ArcaPost, ArcaPostDetail, SearchReasonResult } from "./types";
 
 const ARCA_BASE_URL = "https://arca.live";
 const NAMUHOTNOW_URL = `${ARCA_BASE_URL}/b/namuhotnow`;
@@ -48,8 +43,7 @@ export const searchPosts = async (keyword: string): Promise<ArcaPost[]> => {
     const commentText = $el.find(".comment-count").text().trim();
 
     const viewCount = Number.parseInt(viewText.replace(/,/g, ""), 10) || 0;
-    const commentCount =
-      Number.parseInt(commentText.replace(/[\[\]]/g, ""), 10) || 0;
+    const commentCount = Number.parseInt(commentText.replace(/[[\]]/g, ""), 10) || 0;
 
     posts.push({
       id,
@@ -72,9 +66,7 @@ export const searchPosts = async (keyword: string): Promise<ArcaPost[]> => {
  * @param postId - 게시글 ID
  * @returns 게시글 상세 정보
  */
-export const getPostDetail = async (
-  postId: string
-): Promise<ArcaPostDetail | null> => {
+export const getPostDetail = async (postId: string): Promise<ArcaPostDetail | null> => {
   const postUrl = `${NAMUHOTNOW_URL}/${postId}`;
 
   try {
@@ -95,22 +87,20 @@ export const getPostDetail = async (
     const content = articleContent.html()?.trim() || "";
 
     // 작성자 정보
-    const author = $(".article-head .user-info .nickname").text().trim();
-    const createdAt = $(".article-head .date-time").text().trim();
-    const viewText = $(".article-head .article-info .body")
-      .first()
-      .text()
-      .trim();
+    const author = $(".article-head .user-info").first().text().trim();
+    // 게시글 작성일: time 태그의 datetime 속성 사용
+    const createdAt = $(".article-info .date time").first().attr("datetime") || "";
+    const viewText = $(".article-head .article-info .body").first().text().trim();
     const viewCount = Number.parseInt(viewText.replace(/,/g, ""), 10) || 0;
 
     // 댓글 추출
     const comments: ArcaComment[] = [];
     $(".comment-wrapper .comment-item").each((_, el) => {
       const $comment = $(el);
-      const commentAuthor =
-        $comment.find(".user-info .nickname").text().trim() || "익명";
+      const commentAuthor = $comment.find(".user-info").first().text().trim() || "익명";
       let commentContent = $comment.find(".message").text().trim();
-      const commentDate = $comment.find(".date-time").text().trim();
+      // 댓글 작성일: time 태그의 datetime 속성 사용
+      const commentDate = $comment.find("time").attr("datetime") || "";
 
       // 불필요한 텍스트 제거
       commentContent = commentContent
@@ -150,9 +140,7 @@ export const getPostDetail = async (
  * @param keyword - 검색할 키워드
  * @returns 검색 결과 (게시글 목록)
  */
-export const getSearchReason = async (
-  keyword: string
-): Promise<SearchReasonResult> => {
+export const getSearchReason = async (keyword: string): Promise<SearchReasonResult> => {
   console.log(`🔍 "${keyword}" 실검 이유 검색 중...`);
   const posts = await searchPosts(keyword);
 
@@ -167,9 +155,7 @@ export const getSearchReason = async (
  * @param keyword - 검색할 키워드
  * @returns 첫 번째 게시글의 상세 정보
  */
-export const getSearchReasonDetail = async (
-  keyword: string
-): Promise<ArcaPostDetail | null> => {
+export const getSearchReasonDetail = async (keyword: string): Promise<ArcaPostDetail | null> => {
   const result = await getSearchReason(keyword);
 
   if (result.posts.length === 0) {
@@ -185,4 +171,3 @@ export const getSearchReasonDetail = async (
 };
 
 export default getSearchReason;
-
