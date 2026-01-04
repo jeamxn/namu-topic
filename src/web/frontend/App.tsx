@@ -53,17 +53,17 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
       {/* 배경 효과 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 right-1/3 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-60 sm:w-80 h-60 sm:h-80 bg-cyan-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -left-40 w-72 sm:w-96 h-72 sm:h-96 bg-violet-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 right-1/3 w-56 sm:w-72 h-56 sm:h-72 bg-emerald-500/10 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10">
         <Header lastUpdated={latestData?.session?.createdAt || null} />
 
         {/* 탭 네비게이션 */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <div className="flex gap-2 p-1 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+          <div className="flex gap-1 sm:gap-2 p-1 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50">
             <TabButton
               active={activeTab === "rankings"}
               onClick={() => setActiveTab("rankings")}
@@ -77,7 +77,8 @@ export default function App() {
                   />
                 </svg>
               }>
-              실시간 순위
+              <span className="hidden xs:inline">실시간 순위</span>
+              <span className="xs:hidden">순위</span>
             </TabButton>
             <TabButton
               active={activeTab === "graph"}
@@ -92,7 +93,8 @@ export default function App() {
                   />
                 </svg>
               }>
-              순위 변동
+              <span className="hidden xs:inline">순위 변동</span>
+              <span className="xs:hidden">변동</span>
             </TabButton>
             <TabButton
               active={activeTab === "records"}
@@ -107,13 +109,14 @@ export default function App() {
                   />
                 </svg>
               }>
-              순위 기록
+              <span className="hidden xs:inline">순위 기록</span>
+              <span className="xs:hidden">기록</span>
             </TabButton>
           </div>
         </div>
 
         {/* 메인 컨텐츠 */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -147,7 +150,7 @@ function TabButton({ active, onClick, children, icon }: TabButtonProps) {
     <button
       onClick={onClick}
       className={`
-        flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm
+        flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 rounded-lg font-medium text-xs sm:text-sm
         transition-all duration-200 ease-out
         ${
           active
@@ -163,21 +166,21 @@ function TabButton({ active, onClick, children, icon }: TabButtonProps) {
 
 function LoadingState() {
   return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="relative w-16 h-16">
+    <div className="flex flex-col items-center justify-center py-16 sm:py-20">
+      <div className="relative w-12 h-12 sm:w-16 sm:h-16">
         <div className="absolute inset-0 rounded-full border-4 border-slate-700" />
         <div className="absolute inset-0 rounded-full border-4 border-t-cyan-500 animate-spin" />
       </div>
-      <p className="mt-4 text-slate-400 text-sm">데이터를 불러오는 중...</p>
+      <p className="mt-3 sm:mt-4 text-slate-400 text-xs sm:text-sm">데이터를 불러오는 중...</p>
     </div>
   );
 }
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
-        <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="flex flex-col items-center justify-center py-16 sm:py-20">
+      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -186,7 +189,7 @@ function ErrorState({ message }: { message: string }) {
           />
         </svg>
       </div>
-      <p className="mt-4 text-red-400 text-sm">{message}</p>
+      <p className="mt-3 sm:mt-4 text-red-400 text-xs sm:text-sm">{message}</p>
     </div>
   );
 }

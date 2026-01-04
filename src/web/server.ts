@@ -228,6 +228,50 @@ export const startWebServer = (port = 3000) => {
           }
         },
       },
+
+      // 특정 세션의 키워드 상세 정보 API
+      "/api/trending/keyword-detail": {
+        async GET(req) {
+          try {
+            const url = new URL(req.url);
+            const sessionId = url.searchParams.get("sessionId");
+            const keyword = url.searchParams.get("keyword");
+
+            if (!sessionId || !keyword) {
+              return error("sessionId와 keyword가 필요합니다.", 400);
+            }
+
+            // 해당 세션의 트렌딩 데이터 조회
+            const { ObjectId } = await import("mongodb");
+            const trending = await db.collection("trending_snapshots").findOne({
+              crawlSessionId: new ObjectId(sessionId),
+              keyword: keyword,
+            });
+
+            if (!trending) {
+              return json({ trending: null, aiAnalysis: null });
+            }
+
+            // AI 분석 결과 조회
+            const aiAnalysis = await db.collection("ai_analyses").findOne({
+              trendingSnapshotId: trending._id,
+            });
+
+            return json({
+              trending: {
+                _id: trending._id,
+                rank: trending.rank,
+                keyword: trending.keyword,
+                url: trending.url,
+              },
+              aiAnalysis: aiAnalysis || null,
+            });
+          } catch (err) {
+            console.error("Error fetching keyword detail:", err);
+            return error("키워드 상세 정보를 가져오는데 실패했습니다.", 500);
+          }
+        },
+      },
     },
 
     development: {

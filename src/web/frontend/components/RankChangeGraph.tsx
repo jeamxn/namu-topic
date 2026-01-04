@@ -82,9 +82,9 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
 
   if (historyData.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="text-center py-12 sm:py-16">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -93,90 +93,119 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
             />
           </svg>
         </div>
-        <p className="text-slate-500">히스토리 데이터가 없습니다</p>
-        <p className="text-slate-600 text-sm mt-1">데이터가 수집되면 그래프가 표시됩니다</p>
+        <p className="text-slate-500 text-sm">히스토리 데이터가 없습니다</p>
+        <p className="text-slate-600 text-xs sm:text-sm mt-1">데이터가 수집되면 그래프가 표시됩니다</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-          <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-cyan-400 to-violet-500" />
-          실시간 검색어 순위 변동 (최근 24시간)
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
+          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-cyan-400 to-violet-500" />
+          <span className="hidden xs:inline">실시간 검색어 순위 변동 (최근 24시간)</span>
+          <span className="xs:hidden">순위 변동 (24시간)</span>
         </h2>
 
         <div className="flex gap-2">
           <button
             onClick={selectAll}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
             전체 선택
           </button>
           <button
             onClick={selectNone}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
             선택 해제
           </button>
         </div>
       </div>
 
       {/* 키워드 필터 */}
-      <div className="flex flex-wrap gap-2 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-        {top10Keywords.map((keyword, idx) => (
-          <button
-            key={keyword}
-            onClick={() => toggleKeyword(keyword)}
-            className={`
-              flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-              transition-all duration-200
-              ${
-                selectedKeywords.has(keyword)
-                  ? "text-white shadow-lg"
-                  : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-700/50"
-              }
-            `}
-            style={{
-              backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
-              boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
-            }}>
-            <span className="font-bold mono text-xs opacity-70">#{idx + 1}</span>
-            {keyword}
-          </button>
-        ))}
+      <div className="p-3 sm:p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
+        {/* TOP 1-5 그룹 */}
+        <div className="mb-4">
+          <span className="text-[10px] text-slate-500 font-medium mb-1.5 block">TOP 1-5</span>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {top10Keywords.slice(0, 5).map((keyword, idx) => (
+              <button
+                key={keyword}
+                onClick={() => toggleKeyword(keyword)}
+                className={`
+                  flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                  transition-all duration-200
+                  ${
+                    selectedKeywords.has(keyword)
+                      ? "text-white shadow-lg"
+                      : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-700/50"
+                  }
+                `}
+                style={{
+                  backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
+                  boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
+                }}>
+                <span className="font-bold mono text-[10px] opacity-70">#{idx + 1}</span>
+                <span>{keyword}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* TOP 6-10 그룹 */}
+        <div>
+          <span className="text-[10px] text-slate-500 font-medium mb-1.5 block">TOP 6-10</span>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {top10Keywords.slice(5, 10).map((keyword, idx) => (
+              <button
+                key={keyword}
+                onClick={() => toggleKeyword(keyword)}
+                className={`
+                  flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                  transition-all duration-200
+                  ${
+                    selectedKeywords.has(keyword)
+                      ? "text-white shadow-lg"
+                      : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-700/50"
+                  }
+                `}
+                style={{
+                  backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
+                  boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
+                }}>
+                <span className="font-bold mono text-[10px] opacity-70">#{idx + 6}</span>
+                <span>{keyword}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* 그래프 */}
-      <div className="p-6 rounded-xl bg-slate-800/30 border border-slate-700/50">
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+      <div className="p-3 sm:p-6 rounded-xl bg-slate-800/30 border border-slate-700/50">
+        <ResponsiveContainer width="100%" height={300} className="sm:!h-[400px]">
+          <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
             <XAxis
               dataKey="time"
               stroke="#64748b"
-              tick={{ fill: "#94a3b8", fontSize: 12 }}
+              tick={{ fill: "#94a3b8", fontSize: 10 }}
               tickLine={{ stroke: "#475569" }}
+              interval="preserveStartEnd"
             />
             <YAxis
               reversed
               domain={[1, 10]}
               ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
               stroke="#64748b"
-              tick={{ fill: "#94a3b8", fontSize: 12 }}
+              tick={{ fill: "#94a3b8", fontSize: 10 }}
               tickLine={{ stroke: "#475569" }}
-              label={{
-                value: "순위",
-                angle: -90,
-                position: "insideLeft",
-                fill: "#94a3b8",
-                fontSize: 12,
-              }}
+              width={30}
             />
             <Tooltip content={<CustomTooltip keywordColors={keywordColors} />} />
             <Legend
-              wrapperStyle={{ paddingTop: "20px" }}
-              formatter={(value) => <span className="text-slate-300 text-sm">{value}</span>}
+              wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
+              formatter={(value) => <span className="text-slate-300 text-xs sm:text-sm">{value}</span>}
             />
 
             {top10Keywords
@@ -188,8 +217,8 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
                   dataKey={keyword}
                   stroke={keywordColors[keyword]}
                   strokeWidth={2}
-                  dot={{ fill: keywordColors[keyword], strokeWidth: 0, r: 4 }}
-                  activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }}
+                  dot={{ fill: keywordColors[keyword], strokeWidth: 0, r: 3 }}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
                   connectNulls={false}
                 />
               ))}
@@ -198,8 +227,8 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
       </div>
 
       {/* 범례 설명 */}
-      <div className="text-center text-sm text-slate-500">
-        💡 그래프에서 순위가 낮을수록(1에 가까울수록) 상위권입니다. 키워드를 클릭하여 표시/숨기기할 수 있습니다.
+      <div className="text-center text-xs sm:text-sm text-slate-500 px-4">
+        💡 그래프에서 순위가 낮을수록(1에 가까울수록) 상위권입니다
       </div>
     </div>
   );
@@ -236,14 +265,19 @@ function CustomTooltip({ active, payload, label, keywordColors }: CustomTooltipP
   });
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-xl p-4 shadow-xl">
-      <div className="text-slate-400 text-xs mb-3 font-medium">{label}</div>
-      <div className="space-y-2">
+    <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-xl p-3 sm:p-4 shadow-xl max-w-[200px] sm:max-w-none">
+      <div className="text-slate-400 text-[10px] sm:text-xs mb-2 sm:mb-3 font-medium">{label}</div>
+      <div className="space-y-1.5 sm:space-y-2">
         {sortedPayload.map((entry) => (
-          <div key={entry.dataKey} className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: keywordColors[entry.dataKey] }} />
-            <span className="text-slate-300 text-sm flex-1 min-w-0 truncate">{entry.dataKey}</span>
-            <span className="font-bold mono text-sm" style={{ color: keywordColors[entry.dataKey] }}>
+          <div key={entry.dataKey} className="flex items-center gap-2 sm:gap-3">
+            <div
+              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
+              style={{ backgroundColor: keywordColors[entry.dataKey] }}
+            />
+            <span className="text-slate-300 text-[10px] sm:text-sm flex-1 min-w-0 truncate">{entry.dataKey}</span>
+            <span
+              className="font-bold mono text-[10px] sm:text-sm flex-shrink-0"
+              style={{ color: keywordColors[entry.dataKey] }}>
               {entry.value !== null ? `#${entry.value}` : "-"}
             </span>
           </div>
