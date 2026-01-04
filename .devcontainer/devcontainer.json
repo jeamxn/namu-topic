@@ -1,0 +1,56 @@
+{
+  "name": "namu-topic-development",
+  "dockerComposeFile": ["docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/app",
+  "forwardPorts": [],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.codeActionsOnSave": {
+          // "source.fixAll": "explicit",
+          "source.biome": "explicit",
+          "source.fixAll.biome": "explicit"
+          // "source.organizeImports": "explicit"
+        },
+        "editor.tabSize": 2,
+        "editor.formatOnType": true,
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.formatOnSave": true,
+        "eslint.enable": false,
+        "prettier.enable": false,
+        "biome.enabled": true,
+        "[javascript]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[javascriptreact]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "editor.quickSuggestions": {
+          "strings": true
+        },
+        "typescript.experimental.useTsgo": true
+      },
+      "extensions": [
+        "bradlc.vscode-tailwindcss",
+        "naumovs.color-highlight",
+        "Prisma.prisma",
+        "biomejs.biome",
+        "TypeScriptTeam.native-preview"
+      ]
+    }
+  },
+  "postCreateCommand": "/bin/sh ./.devcontainer/init.sh"
+}

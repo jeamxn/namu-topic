@@ -1,0 +1,29 @@
+name: namu-topic
+services:
+  app:
+    container_name: namu-topic-app
+    restart: unless-stopped
+    build: 
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /app
+    volumes:
+      - ../:/app
+    env_file:
+      - ../.env
+    command: sleep infinity
+  
+  proxy:
+    container_name: namu-topic-proxy
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+
+
+volumes:
+  mysql_data:
+  redis_data:
+  postgres_data:
