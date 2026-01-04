@@ -23,14 +23,40 @@ const COLORS = [
 ];
 
 export default function RankChangeGraph({ historyData, trendingData }: RankChangeGraphProps) {
-  // 현재 TOP 10 키워드 추출
-  const top10Keywords = useMemo(() => {
-    return trendingData.slice(0, 10).map((item) => item.keyword);
+  // 24시간 내 한 번이라도 TOP 10에 들어간 모든 키워드 추출
+  const allKeywordsInHistory = useMemo(() => {
+    const keywordSet = new Set<string>();
+
+    // 히스토리에서 TOP 10에 포함된 모든 키워드 수집
+    historyData.forEach((entry) => {
+      entry.keywords.slice(0, 10).forEach((k) => {
+        keywordSet.add(k.keyword);
+      });
+    });
+
+    // 현재 TOP 10도 추가
+    trendingData.slice(0, 10).forEach((item) => {
+      keywordSet.add(item.keyword);
+    });
+
+    // 현재 순위 기준으로 정렬 (현재 TOP 10 우선, 나머지는 알파벳순)
+    const currentRanks = new Map(trendingData.map((t) => [t.keyword, t.rank]));
+    return Array.from(keywordSet).sort((a, b) => {
+      const rankA = currentRanks.get(a) ?? 999;
+      const rankB = currentRanks.get(b) ?? 999;
+      if (rankA !== rankB) return rankA - rankB;
+      return a.localeCompare(b);
+    });
+  }, [historyData, trendingData]);
+
+  // 현재 TOP 10 키워드 (UI 표시용)
+  const currentTop10 = useMemo(() => {
+    return new Set(trendingData.slice(0, 10).map((item) => item.keyword));
   }, [trendingData]);
 
-  // 선택된 키워드 상태 (기본값: TOP 5만 선택)
+  // 선택된 키워드 상태 (기본값: 현재 TOP 5만 선택)
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(() => {
-    return new Set(top10Keywords.slice(0, 5));
+    return new Set(trendingData.slice(0, 5).map((t) => t.keyword));
   });
 
   // 그래프용 데이터 변환
@@ -42,23 +68,23 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
       };
 
       // 각 키워드의 순위 추가 (순위가 없으면 null로 표시)
-      top10Keywords.forEach((keyword) => {
+      allKeywordsInHistory.forEach((keyword) => {
         const found = entry.keywords.find((k) => k.keyword === keyword);
         dataPoint[keyword] = found ? found.rank : null;
       });
 
       return dataPoint;
     });
-  }, [historyData, top10Keywords]);
+  }, [historyData, allKeywordsInHistory]);
 
   // 키워드 색상 매핑
   const keywordColors = useMemo(() => {
     const colors: Record<string, string> = {};
-    top10Keywords.forEach((keyword, idx) => {
+    allKeywordsInHistory.forEach((keyword, idx) => {
       colors[keyword] = COLORS[idx % COLORS.length]!;
     });
     return colors;
-  }, [top10Keywords]);
+  }, [allKeywordsInHistory]);
 
   const toggleKeyword = (keyword: string) => {
     setSelectedKeywords((prev) => {
@@ -73,11 +99,15 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
   };
 
   const selectAll = () => {
-    setSelectedKeywords(new Set(top10Keywords));
+    setSelectedKeywords(new Set(allKeywordsInHistory));
   };
 
   const selectNone = () => {
     setSelectedKeywords(new Set());
+  };
+
+  const selectCurrentTop10 = () => {
+    setSelectedKeywords(currentTop10);
   };
 
   if (historyData.length === 0) {
@@ -109,15 +139,20 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
           <span className="xs:hidden">순위 변동 (24시간)</span>
         </h2>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={selectCurrentTop10}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            현재 TOP 10
+          </button>
           <button
             onClick={selectAll}
-            className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
             전체 선택
           </button>
           <button
             onClick={selectNone}
-            className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
             선택 해제
           </button>
         </div>
@@ -125,65 +160,80 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
 
       {/* 키워드 필터 */}
       <div className="p-3 sm:p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-        {/* TOP 1-5 그룹 */}
+        {/* 현재 TOP 10 */}
         <div className="mb-4">
-          <span className="text-[10px] text-slate-500 font-medium mb-1.5 block">TOP 1-5</span>
+          <span className="text-[10px] text-emerald-400 font-medium mb-1.5 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            현재 TOP 10
+          </span>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {top10Keywords.slice(0, 5).map((keyword, idx) => (
-              <button
-                key={keyword}
-                onClick={() => toggleKeyword(keyword)}
-                className={`
-                  flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                  transition-all duration-200
-                  ${
-                    selectedKeywords.has(keyword)
-                      ? "text-white shadow-lg"
-                      : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-700/50"
-                  }
-                `}
-                style={{
-                  backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
-                  boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
-                }}>
-                <span className="font-bold mono text-[10px] opacity-70">#{idx + 1}</span>
-                <span>{keyword}</span>
-              </button>
-            ))}
+            {allKeywordsInHistory
+              .filter((k) => currentTop10.has(k))
+              .map((keyword) => {
+                const currentRank = trendingData.find((t) => t.keyword === keyword)?.rank;
+                return (
+                  <button
+                    key={keyword}
+                    onClick={() => toggleKeyword(keyword)}
+                    className={`
+                    flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                    transition-all duration-200
+                    ${
+                      selectedKeywords.has(keyword)
+                        ? "text-white shadow-lg"
+                        : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-700/50"
+                    }
+                  `}
+                    style={{
+                      backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
+                      boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
+                    }}>
+                    <span className="font-bold mono text-[10px] opacity-70">#{currentRank}</span>
+                    <span>{keyword}</span>
+                  </button>
+                );
+              })}
           </div>
         </div>
-        {/* TOP 6-10 그룹 */}
-        <div>
-          <span className="text-[10px] text-slate-500 font-medium mb-1.5 block">TOP 6-10</span>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {top10Keywords.slice(5, 10).map((keyword, idx) => (
-              <button
-                key={keyword}
-                onClick={() => toggleKeyword(keyword)}
-                className={`
-                  flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                  transition-all duration-200
-                  ${
-                    selectedKeywords.has(keyword)
-                      ? "text-white shadow-lg"
-                      : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-700/50"
-                  }
-                `}
-                style={{
-                  backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
-                  boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
-                }}>
-                <span className="font-bold mono text-[10px] opacity-70">#{idx + 6}</span>
-                <span>{keyword}</span>
-              </button>
-            ))}
+        {/* 과거 TOP 10 (현재는 빠진 키워드) */}
+        {allKeywordsInHistory.filter((k) => !currentTop10.has(k)).length > 0 && (
+          <div>
+            <span className="text-[10px] text-slate-500 font-medium mb-1.5 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+              과거 TOP 10 (현재 순위권 밖)
+            </span>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {allKeywordsInHistory
+                .filter((k) => !currentTop10.has(k))
+                .map((keyword) => (
+                  <button
+                    key={keyword}
+                    onClick={() => toggleKeyword(keyword)}
+                    className={`
+                    flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                    transition-all duration-200
+                    ${
+                      selectedKeywords.has(keyword)
+                        ? "text-white shadow-lg"
+                        : "bg-slate-800/50 text-slate-600 hover:text-slate-400 border border-slate-700/30 border-dashed"
+                    }
+                  `}
+                    style={{
+                      backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
+                      boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
+                    }}>
+                    <span className="font-bold mono text-[10px] opacity-50">-</span>
+                    <span>{keyword}</span>
+                  </button>
+                ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 그래프 */}
       <div className="p-3 sm:p-6 rounded-xl bg-slate-800/30 border border-slate-700/50">
-        <ResponsiveContainer width="100%" height={300} className="sm:!h-[400px]">
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
             <XAxis
@@ -208,7 +258,7 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
               formatter={(value) => <span className="text-slate-300 text-xs sm:text-sm">{value}</span>}
             />
 
-            {top10Keywords
+            {allKeywordsInHistory
               .filter((keyword) => selectedKeywords.has(keyword))
               .map((keyword) => (
                 <Line
