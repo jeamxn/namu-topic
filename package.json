@@ -13,9 +13,7 @@
     "@types/marked": "^6.0.0",
     "@types/pdfkit": "^0.17.4",
     "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "bun-plugin-tailwind": "^0.1.2",
-    "tailwindcss": "^4.1.18"
+    "@types/react-dom": "^19.2.3"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -32,6 +30,8 @@
     "pdfkit": "^0.17.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "recharts": "^3.6.0"
+    "recharts": "^3.6.0",
+    "bun-plugin-tailwind": "^0.1.2",
+    "tailwindcss": "^4.1.18"
   }
 }

@@ -8,6 +8,7 @@
         "@slack/bolt": "^4.6.0",
         "axios": "^1.13.2",
         "bullmq": "^5.66.4",
+        "bun-plugin-tailwind": "^0.1.2",
         "cheerio": "^1.1.2",
         "dayjs": "^1.11.19",
         "marked": "^17.0.1",
@@ -17,6 +18,7 @@
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
         "recharts": "^3.6.0",
+        "tailwindcss": "^4.1.18",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -25,8 +27,6 @@
         "@types/pdfkit": "^0.17.4",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
-        "bun-plugin-tailwind": "^0.1.2",
-        "tailwindcss": "^4.1.18",
       },
       "peerDependencies": {
         "typescript": "^5",
