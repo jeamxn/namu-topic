@@ -7,6 +7,7 @@ import saveAiAnalysis from "./saveAiAnalysis";
 import saveArcaliveSnapshot from "./saveArcaliveSnapshot";
 import saveCrawlSession, { updateCrawlSessionDone } from "./saveCrawlSession";
 import saveTrendingData from "./saveTrendingData";
+import startWebServer from "./web/server";
 
 const QUEUE_NAME = "namu-topic-trending";
 const JOB_NAME = "collect-trending";
@@ -58,6 +59,9 @@ const main = async (): Promise<void> => {
 
   // MongoDB 연결
   await connectDB();
+
+  // 웹 대시보드 서버 시작
+  const webServer = startWebServer(3000);
 
   // BullMQ Queue 생성
   const queue = new Queue(QUEUE_NAME, {
@@ -123,6 +127,7 @@ const main = async (): Promise<void> => {
     console.log(`\n\n👋 ${signal} 신호 감지...`);
     await worker.close();
     await queue.close();
+    webServer.stop();
     await closeDB();
     process.exit(0);
   };
