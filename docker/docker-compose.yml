@@ -9,11 +9,10 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
+    env_file:
+      - ../.env
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/namu_topic
-      - REDIS_URL=redis://redis:6379
-      - FLARESOLVERR_URL=http://proxy:8191/v1
     depends_on:
       mongodb:
         condition: service_healthy
