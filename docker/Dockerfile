@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 
 # 의존성 설치
-RUN bun install --frozen-lockfile --production
+RUN bun install --frozen-lockfile
 
 # 소스 복사
 COPY . .
