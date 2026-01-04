@@ -61,7 +61,7 @@ const main = async (): Promise<void> => {
   await connectDB();
 
   // 웹 대시보드 서버 시작
-  const webServer = startWebServer(3000);
+  const webServer = startWebServer(3001);
 
   // BullMQ Queue 생성
   const queue = new Queue(QUEUE_NAME, {
