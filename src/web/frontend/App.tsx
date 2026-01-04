@@ -1,3 +1,4 @@
+import type React from "react";
 import { useEffect, useState } from "react";
 
 import { fetchLatestTrending, fetchTrendingHistory, fetchTrendingRecords } from "./api";

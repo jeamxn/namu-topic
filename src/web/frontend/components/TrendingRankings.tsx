@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import type React from "react";
 import { useState } from "react";
 
 import type { LatestTrendingResponse, TrendingItem } from "../types";
@@ -120,7 +121,11 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
         <div className="hidden lg:flex rounded-xl border border-dashed border-slate-700 bg-slate-800/20 p-6 sm:p-8 text-center items-center justify-center">
           <div>
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { fetchKeywordDetail, type KeywordDetailResponse } from "../api";
 import type { RecordEntry, RecordsResponse } from "../types";

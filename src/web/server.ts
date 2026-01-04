@@ -274,7 +274,8 @@ export const startWebServer = (port = 3000) => {
       },
     },
 
-    development: {
+    // 개발 환경에서만 HMR 활성화 (프로덕션에서는 jsx_dev_runtime 에러 방지)
+    development: process.env.NODE_ENV !== "production" && {
       hmr: true,
       console: true,
     },
