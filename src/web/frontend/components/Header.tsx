@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-import React from "react";
 
 interface HeaderProps {
   lastUpdated: string | null;
