@@ -23,7 +23,6 @@ COPY --from=builder --chown=bun:bun /app/package.json ./
 COPY --from=builder --chown=bun:bun /app/src ./src
 COPY --from=builder --chown=bun:bun /app/public ./public
 COPY --from=builder --chown=bun:bun /app/tsconfig.json ./
-COPY --from=builder --chown=bun:bun /app/.env ./
 
 # non-root 유저로 전환
 USER bun
