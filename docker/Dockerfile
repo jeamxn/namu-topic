@@ -12,21 +12,6 @@ RUN bun install --frozen-lockfile
 # 소스 복사
 COPY . .
 
-# ===== Production Stage =====
-FROM oven/bun:1.3.3-alpine AS production
-
-WORKDIR /app
-
-# 빌드 결과물 복사 (oven/bun 이미지에 이미 bun 유저 존재)
-COPY --from=builder --chown=bun:bun /app/node_modules ./node_modules
-COPY --from=builder --chown=bun:bun /app/package.json ./
-COPY --from=builder --chown=bun:bun /app/src ./src
-COPY --from=builder --chown=bun:bun /app/public ./public
-COPY --from=builder --chown=bun:bun /app/tsconfig.json ./
-
-# non-root 유저로 전환
-USER bun
-
 # 포트 노출
 EXPOSE 3001
 
@@ -36,4 +21,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # 앱 실행
 CMD ["bun", "run", "start"]
-
