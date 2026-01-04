@@ -1,5 +1,35 @@
 name: namu-topic
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: namu-topic-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+  
+  proxy:
+    container_name: namu-topic-proxy
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+
+  mongodb:
+    container_name: namu-topic-mongodb
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=namu_topic
+  
   app:
     container_name: namu-topic-app
     restart: unless-stopped
@@ -12,18 +42,12 @@ services:
     env_file:
       - ../.env
     command: sleep infinity
-  
-  proxy:
-    container_name: namu-topic-proxy
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    ports:
-      - "8191:8191"
-    restart: unless-stopped
-    environment:
-      - LOG_LEVEL=info
+    depends_on:
+      - mongodb
+      - redis
+      - proxy
 
 
 volumes:
-  mysql_data:
   redis_data:
-  postgres_data:
+  mongodb_data:

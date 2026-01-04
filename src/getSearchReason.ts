@@ -35,6 +35,7 @@ export const searchPosts = async (keyword: string): Promise<ArcaPost[]> => {
     if (!idMatch) return;
 
     const id = idMatch[1];
+    if (!id) return;
 
     // 작성자, 날짜, 조회수 추출
     const author = $el.find(".user-info").text().trim() || "익명";
@@ -165,6 +166,10 @@ export const getSearchReasonDetail = async (keyword: string): Promise<ArcaPostDe
 
   // 첫 번째 게시글의 상세 정보 조회
   const firstPost = result.posts[0];
+  if (!firstPost) {
+    console.log(`❌ "${keyword}"에 대한 유효한 게시글이 없습니다.`);
+    return null;
+  }
   console.log(`📄 게시글 상세 조회: ${firstPost.title}`);
 
   return getPostDetail(firstPost.id);

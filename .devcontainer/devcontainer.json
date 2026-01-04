@@ -52,5 +52,5 @@
       ]
     }
   },
-  "postCreateCommand": "/bin/sh ./.devcontainer/init.sh"
+  "postCreateCommand": "/bin/bash"
 }
