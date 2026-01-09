@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import { fetchLatestTrending, fetchTrendingHistory, fetchTrendingRecords } from "./api";
 import Header from "./components/Header";
@@ -19,32 +19,40 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 데이터 로드
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [latest, history, records] = await Promise.all([
-          fetchLatestTrending(),
-          fetchTrendingHistory(24),
-          fetchTrendingRecords(currentPage, 20),
-        ]);
-        setLatestData(latest);
-        setHistoryData(history);
-        setRecordsData(records);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "데이터를 불러오는데 실패했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-    // 30초마다 자동 갱신
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
+  // 데이터 로드 함수를 useCallback으로 메모이제이션
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [latest, history, records] = await Promise.all([
+        fetchLatestTrending(),
+        fetchTrendingHistory(24),
+        fetchTrendingRecords(currentPage, 20),
+      ]);
+      setLatestData(latest);
+      setHistoryData(history);
+      setRecordsData(records);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "데이터를 불러오는데 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   }, [currentPage]);
+
+  // 데이터 로드 - currentPage 변경 시에만 실행
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // 자동 갱신 - 독립적으로 관리하여 페이지 변경 시 interval 재설정 방지
+  useEffect(() => {
+    // 30초마다 자동 갱신
+    const interval = setInterval(() => {
+      loadData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

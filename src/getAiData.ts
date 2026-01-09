@@ -88,20 +88,25 @@ const parseAiAnalysis = (content: string, results: TrendingWithReason[]): Parsed
     const trendingItem = results.find((r) => r.rank === rank);
 
     if (trendingItem) {
-      // 한줄 요약에서 ">" 인용 표시 제거
-      const summaryRaw = extractSection(section, "한줄 요약");
-      const summary = summaryRaw.replace(/^>\s*/, "").trim();
+      try {
+        // 한줄 요약에서 ">" 인용 표시 제거
+        const summaryRaw = extractSection(section, "한줄 요약");
+        const summary = summaryRaw.replace(/^>\s*/, "").trim();
 
-      parsed.push({
-        rank,
-        keyword: trendingItem.keyword,
-        summary,
-        reason: extractSection(section, "왜 실검에 올랐나\\?"),
-        publicOpinion: extractSection(section, "여론 및 반응"),
-        relatedInfo: parseRelatedInfo(section),
-        relatedLinks: parseRelatedLinks(section),
-        relatedImages: parseRelatedImages(section),
-      });
+        parsed.push({
+          rank,
+          keyword: trendingItem.keyword,
+          summary,
+          reason: extractSection(section, "왜 실검에 올랐나\\?"),
+          publicOpinion: extractSection(section, "여론 및 반응"),
+          relatedInfo: parseRelatedInfo(section),
+          relatedLinks: parseRelatedLinks(section),
+          relatedImages: parseRelatedImages(section),
+        });
+      } catch (parseError) {
+        console.error(`⚠️ 순위 ${rank} 파싱 중 오류:`, parseError);
+        // 개별 항목 파싱 실패 시 해당 항목만 건너뛰고 계속 진행
+      }
     }
   }
 
@@ -110,12 +115,14 @@ const parseAiAnalysis = (content: string, results: TrendingWithReason[]): Parsed
 
 const getAiData = async (results: TrendingWithReason[]): Promise<ParsedAiAnalysis[]> => {
   console.log("🤖 실시간 검색어 분석 중...");
-  const data = await openai.chat.completions.create({
-    model: "gpt-5-nano-2025-08-07",
-    messages: [
-      {
-        role: "system",
-        content: `당신은 뉴스 기사 작성 전문 및 검색어 분석 전문 기자입니다.
+  
+  try {
+    const data = await openai.chat.completions.create({
+      model: "gpt-5-nano-2025-08-07",
+      messages: [
+        {
+          role: "system",
+          content: `당신은 뉴스 기사 작성 전문 및 검색어 분석 전문 기자입니다.
 
 ## 역할
 - 실시간 검색어가 왜 떠올랐는지 뉴스 기사 형식으로 보도합니다.
@@ -165,20 +172,37 @@ const getAiData = async (results: TrendingWithReason[]): Promise<ParsedAiAnalysi
 ## 관련 이미지
 - [이미지 설명](이미지 url) - 간단한 설명
 (데이터에 포함된 이미지들을 같은 형식으로 나열)`,
-      },
-      {
-        role: "user",
-        content: `아래 실시간 검색어 데이터를 분석해주세요. 각 항목의 reason 필드에 아카라이브 게시글 정보(본문, 댓글)가 포함되어 있습니다:
+        },
+        {
+          role: "user",
+          content: `아래 실시간 검색어 데이터를 분석해주세요. 각 항목의 reason 필드에 아카라이브 게시글 정보(본문, 댓글)가 포함되어 있습니다:
 
 ${JSON.stringify(results, null, 2)}`,
-      },
-    ],
-  });
-  console.log("🤖 실시간 검색어 분석 완료...");
+        },
+      ],
+    });
+    
+    console.log("🤖 실시간 검색어 분석 완료...");
 
-  const content = data.choices[0]?.message?.content ?? "";
-  console.log(content);
-  return parseAiAnalysis(content, results);
+    const content = data.choices[0]?.message?.content ?? "";
+    
+    if (!content) {
+      throw new Error("AI 응답이 비어있습니다.");
+    }
+    
+    console.log(content);
+    
+    const parsedResults = parseAiAnalysis(content, results);
+    
+    if (parsedResults.length === 0) {
+      throw new Error("AI 응답을 파싱할 수 없습니다. 응답 형식이 올바르지 않습니다.");
+    }
+    
+    return parsedResults;
+  } catch (error) {
+    console.error("❌ AI 분석 실패:", error);
+    throw error; // 상위에서 처리하도록 에러 전파
+  }
 };
 
 export default getAiData;

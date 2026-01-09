@@ -35,12 +35,17 @@ const processJob = async (): Promise<void> => {
     // 4. arcalive_snapshots에 저장 (reason 데이터 별도 저장)
     await saveArcaliveSnapshot(results, savedTrending);
 
-    // 5. AI 분석 실행 (순위별 파싱)
-    const aiAnalyses = await getAiData(results);
-    console.log(JSON.stringify(aiAnalyses, null, 2));
+    // 5. AI 분석 실행 (순위별 파싱) - 실패해도 계속 진행
+    try {
+      const aiAnalyses = await getAiData(results);
+      console.log(JSON.stringify(aiAnalyses, null, 2));
 
-    // 6. ai_analyses에 저장 (trending_snapshots._id와 FK 연결, rank 제외)
-    await saveAiAnalysis(aiAnalyses, savedTrending);
+      // 6. ai_analyses에 저장 (trending_snapshots._id와 FK 연결, rank 제외)
+      await saveAiAnalysis(aiAnalyses, savedTrending);
+    } catch (aiError) {
+      console.error("⚠️ AI 분석 중 오류 발생 (trending 데이터는 정상 저장됨):", aiError);
+      // AI 분석 실패해도 trending 데이터는 이미 저장되었으므로 계속 진행
+    }
 
     // 7. 크롤 세션 완료 처리
     await updateCrawlSessionDone(crawlSessionId);
