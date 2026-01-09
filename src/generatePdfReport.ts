@@ -82,7 +82,7 @@ export const generatePdfReport = async (db: Db, options: ReportOptions): Promise
     .slice(0, 20);
 
   // PDF 생성
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const doc = new PDFDocument({
       size: "A4",
       margin: 50,
