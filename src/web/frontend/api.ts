@@ -56,3 +56,13 @@ export async function fetchKeywordDetail(sessionId: string, keyword: string): Pr
   if (!res.ok) throw new Error("Failed to fetch keyword detail");
   return res.json() as Promise<KeywordDetailResponse>;
 }
+
+// PDF 다운로드
+export function downloadPdfReport(): void {
+  window.location.href = `${API_BASE}/export/pdf`;
+}
+
+// JSON 다운로드
+export function downloadJsonReport(): void {
+  window.location.href = `${API_BASE}/export/json`;
+}

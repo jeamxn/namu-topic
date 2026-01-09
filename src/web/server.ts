@@ -1,6 +1,8 @@
 import { serve } from "bun";
+import dayjs from "dayjs";
 import type { Db } from "mongodb";
 
+import generatePdfReport from "../generatePdfReport";
 import { getDB } from "../mongodb";
 import homepage from "./public/index.html";
 
@@ -269,6 +271,73 @@ export const startWebServer = (port = 3000) => {
           } catch (err) {
             console.error("Error fetching keyword detail:", err);
             return error("키워드 상세 정보를 가져오는데 실패했습니다.", 500);
+          }
+        },
+      },
+
+      // PDF 다운로드 API (NEW!)
+      "/api/export/pdf": {
+        async GET() {
+          try {
+            const latestData = await getLatestTrending(db);
+
+            if (!latestData.session || latestData.trending.length === 0) {
+              return error("다운로드할 데이터가 없습니다.", 404);
+            }
+
+            // PDF 생성
+            const pdfStream = generatePdfReport(latestData.trending, latestData.session.createdAt);
+
+            // 파일명 생성
+            const filename = `namu-trending-${dayjs(latestData.session.createdAt).format("YYYY-MM-DD-HHmm")}.pdf`;
+
+            // 스트림을 버퍼로 변환
+            const chunks: Uint8Array[] = [];
+            for await (const chunk of pdfStream) {
+              chunks.push(chunk);
+            }
+            const buffer = Buffer.concat(chunks);
+
+            return new Response(buffer, {
+              headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="${filename}"`,
+                "Access-Control-Allow-Origin": "*",
+              },
+            });
+          } catch (err) {
+            console.error("Error generating PDF:", err);
+            return error("PDF 생성에 실패했습니다.", 500);
+          }
+        },
+      },
+
+      // JSON 다운로드 API (NEW!)
+      "/api/export/json": {
+        async GET() {
+          try {
+            const latestData = await getLatestTrending(db);
+
+            if (!latestData.session || latestData.trending.length === 0) {
+              return error("다운로드할 데이터가 없습니다.", 404);
+            }
+
+            // 파일명 생성
+            const filename = `namu-trending-${dayjs(latestData.session.createdAt).format("YYYY-MM-DD-HHmm")}.json`;
+
+            // JSON 문자열로 변환
+            const jsonString = JSON.stringify(latestData, null, 2);
+
+            return new Response(jsonString, {
+              headers: {
+                "Content-Type": "application/json",
+                "Content-Disposition": `attachment; filename="${filename}"`,
+                "Access-Control-Allow-Origin": "*",
+              },
+            });
+          } catch (err) {
+            console.error("Error generating JSON:", err);
+            return error("JSON 생성에 실패했습니다.", 500);
           }
         },
       },
