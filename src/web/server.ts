@@ -4,20 +4,37 @@ import type { Db } from "mongodb";
 import { getDB } from "../mongodb";
 import homepage from "./public/index.html";
 
+// Security headers helper
+const securityHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+};
+
 // API 응답 헬퍼
 const json = (data: unknown, status = 200) => {
   return Response.json(data, {
     status,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
+    headers: securityHeaders,
   });
 };
 
 const error = (message: string, status = 400) => {
   return json({ error: message }, status);
+};
+
+// Input validation helper
+const validatePositiveInteger = (value: string | null, defaultValue: number, max?: number): number => {
+  if (!value) return defaultValue;
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed) || parsed < 1) return defaultValue;
+  if (max && parsed > max) return max;
+  return parsed;
 };
 
 // 최신 트렌딩 데이터 조회
@@ -189,7 +206,7 @@ export const startWebServer = (port = 3000) => {
         async GET(req) {
           try {
             const url = new URL(req.url);
-            const hours = parseInt(url.searchParams.get("hours") || "24", 10);
+            const hours = validatePositiveInteger(url.searchParams.get("hours"), 24, 168); // Max 7 days
             const data = await getTrendingHistory(db, hours);
             return json(data);
           } catch (err) {
@@ -203,8 +220,12 @@ export const startWebServer = (port = 3000) => {
       "/api/trending/keyword/:keyword": async (req) => {
         try {
           const keyword = decodeURIComponent(req.params.keyword);
+          // Validate keyword length to prevent abuse
+          if (keyword.length > 100) {
+            return error("키워드가 너무 깁니다.", 400);
+          }
           const url = new URL(req.url);
-          const hours = parseInt(url.searchParams.get("hours") || "24", 10);
+          const hours = validatePositiveInteger(url.searchParams.get("hours"), 24, 168);
           const data = await getKeywordRankHistory(db, keyword, hours);
           return json(data);
         } catch (err) {
@@ -218,8 +239,8 @@ export const startWebServer = (port = 3000) => {
         async GET(req) {
           try {
             const url = new URL(req.url);
-            const page = parseInt(url.searchParams.get("page") || "1", 10);
-            const limit = parseInt(url.searchParams.get("limit") || "20", 10);
+            const page = validatePositiveInteger(url.searchParams.get("page"), 1, 1000);
+            const limit = validatePositiveInteger(url.searchParams.get("limit"), 20, 100);
             const data = await getTrendingRecords(db, page, limit);
             return json(data);
           } catch (err) {
@@ -241,8 +262,19 @@ export const startWebServer = (port = 3000) => {
               return error("sessionId와 keyword가 필요합니다.", 400);
             }
 
+            // Validate inputs
+            if (keyword.length > 100) {
+              return error("키워드가 너무 깁니다.", 400);
+            }
+
             // 해당 세션의 트렌딩 데이터 조회
             const { ObjectId } = await import("mongodb");
+            
+            // Validate ObjectId format
+            if (!ObjectId.isValid(sessionId)) {
+              return error("유효하지 않은 sessionId입니다.", 400);
+            }
+
             const trending = await db.collection("trending_snapshots").findOne({
               crawlSessionId: new ObjectId(sessionId),
               keyword: keyword,
@@ -284,11 +316,7 @@ export const startWebServer = (port = 3000) => {
       // CORS preflight
       if (req.method === "OPTIONS") {
         return new Response(null, {
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-          },
+          headers: securityHeaders,
         });
       }
       return new Response("Not Found", { status: 404 });
