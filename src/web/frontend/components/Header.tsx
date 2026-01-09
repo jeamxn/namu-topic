@@ -1,10 +1,14 @@
 import dayjs from "dayjs";
+import { useState } from "react";
+import PdfDownloadButton from "./PdfDownloadButton";
 
 interface HeaderProps {
   lastUpdated: string | null;
 }
 
 export default function Header({ lastUpdated }: HeaderProps) {
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+
   const formatDate = (dateStr: string) => dayjs(dateStr).format("YYYY.MM.DD HH:mm:ss");
   const formatDateShort = (dateStr: string) => dayjs(dateStr).format("MM.DD HH:mm");
 
@@ -39,17 +43,52 @@ export default function Header({ lastUpdated }: HeaderProps) {
             </div>
           </div>
 
-          {/* 업데이트 시간 */}
-          {lastUpdated && (
-            <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 self-start sm:self-auto">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-slate-400 text-xs sm:text-sm">
-                <span className="hidden sm:inline">마지막 업데이트: </span>
-                <span className="text-slate-300 mono hidden sm:inline">{formatDate(lastUpdated)}</span>
-                <span className="text-slate-300 mono sm:hidden">{formatDateShort(lastUpdated)}</span>
-              </span>
+          <div className="flex items-center gap-3">
+            {/* PDF 다운로드 버튼 */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50 transition-all text-slate-300 hover:text-white text-xs sm:text-sm">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <span className="hidden sm:inline">PDF 리포트</span>
+              </button>
+
+              {/* 다운로드 메뉴 */}
+              {showDownloadMenu && (
+                <div className="absolute right-0 mt-2 w-64 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 p-3 space-y-2">
+                  <div className="text-xs text-slate-400 mb-2 pb-2 border-b border-slate-700">
+                    리포트 기간 선택
+                  </div>
+                  <PdfDownloadButton period="daily" />
+                  <PdfDownloadButton period="weekly" />
+                  <button
+                    onClick={() => setShowDownloadMenu(false)}
+                    className="w-full text-xs text-slate-500 hover:text-slate-300 py-1 mt-2">
+                    닫기
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* 업데이트 시간 */}
+            {lastUpdated && (
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-slate-400 text-xs sm:text-sm">
+                  <span className="hidden sm:inline">마지막 업데이트: </span>
+                  <span className="text-slate-300 mono hidden sm:inline">{formatDate(lastUpdated)}</span>
+                  <span className="text-slate-300 mono sm:hidden">{formatDateShort(lastUpdated)}</span>
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

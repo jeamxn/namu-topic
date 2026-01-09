@@ -2,6 +2,7 @@ import { serve } from "bun";
 import type { Db } from "mongodb";
 
 import { getDB } from "../mongodb";
+import generatePdfReport from "../generatePdfReport";
 import homepage from "./public/index.html";
 
 // API 응답 헬퍼
@@ -269,6 +270,39 @@ export const startWebServer = (port = 3000) => {
           } catch (err) {
             console.error("Error fetching keyword detail:", err);
             return error("키워드 상세 정보를 가져오는데 실패했습니다.", 500);
+          }
+        },
+      },
+
+      // PDF 리포트 생성 API
+      "/api/report/pdf": {
+        async GET(req) {
+          try {
+            const url = new URL(req.url);
+            const period = url.searchParams.get("period") as "daily" | "weekly" || "daily";
+            const dateParam = url.searchParams.get("date");
+            const date = dateParam ? new Date(dateParam) : new Date();
+
+            if (!["daily", "weekly"].includes(period)) {
+              return error("period는 'daily' 또는 'weekly'여야 합니다.", 400);
+            }
+
+            console.log(`📄 PDF 리포트 생성 시작: ${period}, ${date.toISOString()}`);
+            
+            const pdfBuffer = await generatePdfReport(db, { period, date });
+
+            console.log(`✅ PDF 리포트 생성 완료`);
+
+            return new Response(pdfBuffer, {
+              headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="namu-trending-report-${period}-${date.toISOString().split("T")[0]}.pdf"`,
+                "Access-Control-Allow-Origin": "*",
+              },
+            });
+          } catch (err) {
+            console.error("Error generating PDF report:", err);
+            return error(err instanceof Error ? err.message : "PDF 리포트 생성에 실패했습니다.", 500);
           }
         },
       },
