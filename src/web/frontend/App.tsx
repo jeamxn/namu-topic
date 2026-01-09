@@ -2,13 +2,14 @@ import type React from "react";
 import { useEffect, useState } from "react";
 
 import { fetchLatestTrending, fetchTrendingHistory, fetchTrendingRecords } from "./api";
+import Dashboard from "./components/Dashboard";
 import Header from "./components/Header";
 import RankChangeGraph from "./components/RankChangeGraph";
 import TrendingRankings from "./components/TrendingRankings";
 import TrendingRecords from "./components/TrendingRecords";
 import type { HistoryEntry, LatestTrendingResponse, RecordsResponse } from "./types";
 
-type TabType = "rankings" | "graph" | "records";
+type TabType = "rankings" | "graph" | "records" | "dashboard";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("rankings");
@@ -64,7 +65,7 @@ export default function App() {
 
         {/* 탭 네비게이션 */}
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-          <div className="flex gap-1 sm:gap-2 p-1 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50">
+          <div className="flex gap-1 sm:gap-2 p-1 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 overflow-x-auto">
             <TabButton
               active={activeTab === "rankings"}
               onClick={() => setActiveTab("rankings")}
@@ -113,14 +114,30 @@ export default function App() {
               <span className="hidden xs:inline">순위 기록</span>
               <span className="xs:hidden">기록</span>
             </TabButton>
+            <TabButton
+              active={activeTab === "dashboard"}
+              onClick={() => setActiveTab("dashboard")}
+              icon={
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              }>
+              <span className="hidden xs:inline">통계 대시보드</span>
+              <span className="xs:hidden">통계</span>
+            </TabButton>
           </div>
         </div>
 
         {/* 메인 컨텐츠 */}
         <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-          {loading ? (
+          {loading && activeTab !== "dashboard" ? (
             <LoadingState />
-          ) : error ? (
+          ) : error && activeTab !== "dashboard" ? (
             <ErrorState message={error} />
           ) : (
             <>
@@ -131,6 +148,7 @@ export default function App() {
               {activeTab === "records" && recordsData && (
                 <TrendingRecords data={recordsData} onPageChange={handlePageChange} />
               )}
+              {activeTab === "dashboard" && <Dashboard days={7} />}
             </>
           )}
         </main>
@@ -152,7 +170,7 @@ function TabButton({ active, onClick, children, icon }: TabButtonProps) {
       onClick={onClick}
       className={`
         flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 sm:py-3 rounded-lg font-medium text-xs sm:text-sm
-        transition-all duration-200 ease-out
+        transition-all duration-200 ease-out whitespace-nowrap
         ${
           active
             ? "bg-linear-to-r from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
