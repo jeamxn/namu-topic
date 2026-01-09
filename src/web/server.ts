@@ -2,6 +2,7 @@ import { serve } from "bun";
 import type { Db } from "mongodb";
 
 import { getDB } from "../mongodb";
+import { getRankStatistics, getTopKeywords, getTrendingUpKeywords, searchKeyword } from "./api/search";
 import homepage from "./public/index.html";
 
 // API 응답 헬퍼
@@ -269,6 +270,77 @@ export const startWebServer = (port = 3000) => {
           } catch (err) {
             console.error("Error fetching keyword detail:", err);
             return error("키워드 상세 정보를 가져오는데 실패했습니다.", 500);
+          }
+        },
+      },
+
+      // 🆕 키워드 검색 API
+      "/api/search/keyword": {
+        async GET(req) {
+          try {
+            const url = new URL(req.url);
+            const keyword = url.searchParams.get("q");
+            const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+
+            if (!keyword) {
+              return error("검색어(q)가 필요합니다.", 400);
+            }
+
+            const data = await searchKeyword(db, keyword, limit);
+            return json(data);
+          } catch (err) {
+            console.error("Error searching keyword:", err);
+            return error("키워드 검색에 실패했습니다.", 500);
+          }
+        },
+      },
+
+      // 🆕 인기 키워드 통계 API
+      "/api/stats/top-keywords": {
+        async GET(req) {
+          try {
+            const url = new URL(req.url);
+            const days = parseInt(url.searchParams.get("days") || "7", 10);
+            const limit = parseInt(url.searchParams.get("limit") || "20", 10);
+
+            const data = await getTopKeywords(db, days, limit);
+            return json(data);
+          } catch (err) {
+            console.error("Error fetching top keywords:", err);
+            return error("인기 키워드 통계를 가져오는데 실패했습니다.", 500);
+          }
+        },
+      },
+
+      // 🆕 순위별 통계 API
+      "/api/stats/rank-statistics": {
+        async GET(req) {
+          try {
+            const url = new URL(req.url);
+            const days = parseInt(url.searchParams.get("days") || "7", 10);
+
+            const data = await getRankStatistics(db, days);
+            return json(data);
+          } catch (err) {
+            console.error("Error fetching rank statistics:", err);
+            return error("순위별 통계를 가져오는데 실패했습니다.", 500);
+          }
+        },
+      },
+
+      // 🆕 급상승 키워드 API
+      "/api/stats/trending-up": {
+        async GET(req) {
+          try {
+            const url = new URL(req.url);
+            const hours = parseInt(url.searchParams.get("hours") || "24", 10);
+            const limit = parseInt(url.searchParams.get("limit") || "10", 10);
+
+            const data = await getTrendingUpKeywords(db, hours, limit);
+            return json(data);
+          } catch (err) {
+            console.error("Error fetching trending up keywords:", err);
+            return error("급상승 키워드를 가져오는데 실패했습니다.", 500);
           }
         },
       },
