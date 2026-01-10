@@ -108,8 +108,10 @@ const parseAiAnalysis = (content: string, results: TrendingWithReason[]): Parsed
   return parsed;
 };
 
-const getAiData = async (results: TrendingWithReason[]): Promise<ParsedAiAnalysis[]> => {
-  console.log("🤖 실시간 검색어 분석 중...");
+const MAX_RETRY_ATTEMPTS = 3;
+const MIN_PARSE_SUCCESS_RATIO = 0.5; // 최소 50% 이상 파싱 성공해야 함
+
+const callAiForAnalysis = async (results: TrendingWithReason[]): Promise<string> => {
   const data = await openai.chat.completions.create({
     model: "gpt-5-nano-2025-08-07",
     messages: [
@@ -174,11 +176,40 @@ ${JSON.stringify(results, null, 2)}`,
       },
     ],
   });
-  console.log("🤖 실시간 검색어 분석 완료...");
 
-  const content = data.choices[0]?.message?.content ?? "";
-  console.log(content);
-  return parseAiAnalysis(content, results);
+  return data.choices[0]?.message?.content ?? "";
+};
+
+const getAiData = async (results: TrendingWithReason[]): Promise<ParsedAiAnalysis[]> => {
+  const expectedCount = results.length;
+  const minSuccessCount = Math.ceil(expectedCount * MIN_PARSE_SUCCESS_RATIO);
+
+  for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+    console.log(`🤖 실시간 검색어 분석 중... (시도 ${attempt}/${MAX_RETRY_ATTEMPTS})`);
+
+    const content = await callAiForAnalysis(results);
+    console.log(content);
+
+    const parsed = parseAiAnalysis(content, results);
+    console.log(`🤖 파싱 결과: ${parsed.length}/${expectedCount}개 성공`);
+
+    // 파싱 성공률이 충분하면 반환
+    if (parsed.length >= minSuccessCount) {
+      console.log("🤖 실시간 검색어 분석 완료!");
+      return parsed;
+    }
+
+    // 마지막 시도가 아니면 재시도 안내
+    if (attempt < MAX_RETRY_ATTEMPTS) {
+      console.log(`⚠️ 파싱 결과 부족 (${parsed.length}/${minSuccessCount} 필요), 재시도합니다...`);
+    } else {
+      console.log(`⚠️ 최대 재시도 횟수 도달, 마지막 결과로 진행합니다.`);
+      return parsed;
+    }
+  }
+
+  // 여기 도달하면 안 되지만 타입 안전을 위해
+  return [];
 };
 
 export default getAiData;

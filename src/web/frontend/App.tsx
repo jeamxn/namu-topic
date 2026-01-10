@@ -41,9 +41,6 @@ export default function App() {
     };
 
     loadData();
-    // 30초마다 자동 갱신
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
   }, [currentPage]);
 
   const handlePageChange = (page: number) => {
