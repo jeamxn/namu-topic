@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { LatestTrendingResponse, TrendingItem } from "../types";
 
@@ -31,10 +31,37 @@ function getCategoryTone(rawCategory?: string): CategoryTone {
 
 export default function TrendingRankings({ data }: TrendingRankingsProps) {
   const top = data.trending.slice(0, 10);
-  const hero = top[0] || null;
-  const rest = top.slice(1);
 
+  // 히어로 자동 회전 (1위 → 2위 → ... → 10위 → 1위)
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const hero = top[heroIndex] || null;
   const [selectedKeyword, setSelectedKeyword] = useState<TrendingItem | null>(hero);
+  const userInteracted = useRef(false);
+
+  useEffect(() => {
+    if (paused || top.length <= 1) return;
+    const id = setInterval(() => {
+      setHeroIndex((i) => (i + 1) % top.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [paused, top.length]);
+
+  // hero가 바뀔 때 사용자가 직접 선택하지 않았다면 selectedKeyword도 동기화
+  useEffect(() => {
+    if (!userInteracted.current && hero) {
+      setSelectedKeyword(hero);
+    }
+  }, [hero]);
+
+  const handleSelect = (item: TrendingItem) => {
+    userInteracted.current = true;
+    setPaused(true);
+    setSelectedKeyword(item);
+    // 클릭한 항목이 top 안에 있으면 히어로 인덱스도 맞춰줌
+    const idx = top.findIndex((t) => t._id === item._id);
+    if (idx >= 0) setHeroIndex(idx);
+  };
 
   if (top.length === 0) {
     return <div className="text-center py-16 text-zinc-500 text-sm">데이터가 없습니다</div>;
@@ -43,25 +70,38 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
   return (
     <div className="grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12">
       {/* 좌측: 히어로 + 리스트 */}
-      <div>
-        {/* (A) 히어로 — #1 */}
-        {hero && <HeroFeature item={hero} onClick={() => setSelectedKeyword(hero)} active={selectedKeyword?._id === hero._id} />}
+      <div
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => {
+          if (!userInteracted.current) setPaused(false);
+        }}>
+        {/* (A) 히어로 — 회전 */}
+        {hero && (
+          <HeroFeature
+            item={hero}
+            onClick={() => handleSelect(hero)}
+            active={selectedKeyword?._id === hero._id}
+            total={top.length}
+          />
+        )}
 
         {/* 섹션 라벨 */}
         <div className="flex items-baseline justify-between mt-10 mb-2 pb-3 border-b border-zinc-200 dark:border-zinc-900">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">More Trending</span>
-          <span className="mono tabular text-[10px] text-zinc-400 dark:text-zinc-600">02 — {String(top.length).padStart(2, "0")}</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">All Trending</span>
+          <span className="mono tabular text-[10px] text-zinc-400 dark:text-zinc-600">
+            01 — {String(top.length).padStart(2, "0")}
+          </span>
         </div>
 
-        {/* (B) 2-10위 리스트 — 디바이더만 */}
+        {/* (B) 1-10위 전체 리스트 */}
         <ul className="divide-y divide-zinc-200 dark:divide-zinc-900">
-          {rest.map((item) => {
+          {top.map((item) => {
             const tone = getCategoryTone(item.aiAnalysis?.relatedInfo?.category);
             const isSelected = selectedKeyword?._id === item._id;
             return (
               <li key={item._id}>
                 <button
-                  onClick={() => setSelectedKeyword(item)}
+                  onClick={() => handleSelect(item)}
                   className={`group w-full text-left grid grid-cols-[56px_1fr_auto] sm:grid-cols-[72px_1fr_auto] items-center gap-3 sm:gap-5 py-4 sm:py-5 transition-colors ${
                     isSelected
                       ? "bg-zinc-100/60 dark:bg-zinc-900/40 border-l border-zinc-900 dark:border-zinc-100 pl-3 -ml-3"
@@ -136,9 +176,10 @@ interface HeroProps {
   item: TrendingItem;
   onClick: () => void;
   active: boolean;
+  total: number;
 }
 
-function HeroFeature({ item, onClick, active }: HeroProps) {
+function HeroFeature({ item, onClick, active, total }: HeroProps) {
   const analysis = item.aiAnalysis;
   const tone = getCategoryTone(analysis?.relatedInfo?.category);
 
@@ -149,6 +190,9 @@ function HeroFeature({ item, onClick, active }: HeroProps) {
       {/* 메타 라인 */}
       <div className="flex items-center gap-3 mb-4 sm:mb-6">
         <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">Top Story</span>
+        <span className="mono tabular text-[10px] text-zinc-400 dark:text-zinc-600">
+          {String(item.rank).padStart(2, "0")} / {String(total).padStart(2, "0")}
+        </span>
         {analysis?.relatedInfo?.category && analysis.relatedInfo.category !== "-" && (
           <>
             <span className="text-zinc-300 dark:text-zinc-800">·</span>
@@ -165,7 +209,7 @@ function HeroFeature({ item, onClick, active }: HeroProps) {
       <div className="flex items-start gap-5 sm:gap-8">
         {/* 거대 모노 숫자 */}
         <span className="mono tabular font-black text-6xl sm:text-8xl lg:text-9xl leading-none text-zinc-900 dark:text-zinc-100 shrink-0">
-          01
+          {String(item.rank).padStart(2, "0")}
         </span>
 
         {/* 키워드 + 요약 */}
