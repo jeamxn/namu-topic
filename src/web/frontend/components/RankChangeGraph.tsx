@@ -8,38 +8,32 @@ interface RankChangeGraphProps {
   trendingData: TrendingItem[];
 }
 
-// 고정 색상 팔레트 (구분하기 쉬운 색상들)
+// 톤다운된 색상 팔레트 (다크 테마 친화적)
 const COLORS = [
-  "#06b6d4", // cyan-500
-  "#8b5cf6", // violet-500
-  "#10b981", // emerald-500
-  "#f59e0b", // amber-500
-  "#ec4899", // pink-500
-  "#3b82f6", // blue-500
-  "#ef4444", // red-500
-  "#84cc16", // lime-500
-  "#f97316", // orange-500
-  "#14b8a6", // teal-500
+  "#60a5fa", // blue-400
+  "#a78bfa", // violet-400
+  "#34d399", // emerald-400
+  "#fbbf24", // amber-400
+  "#f472b6", // pink-400
+  "#22d3ee", // cyan-400
+  "#f87171", // red-400
+  "#a3e635", // lime-400
+  "#fb923c", // orange-400
+  "#2dd4bf", // teal-400
 ];
 
 export default function RankChangeGraph({ historyData, trendingData }: RankChangeGraphProps) {
-  // 24시간 내 한 번이라도 TOP 10에 들어간 모든 키워드 추출
   const allKeywordsInHistory = useMemo(() => {
     const keywordSet = new Set<string>();
-
-    // 히스토리에서 TOP 10에 포함된 모든 키워드 수집
     historyData.forEach((entry) => {
       entry.keywords.slice(0, 10).forEach((k) => {
         keywordSet.add(k.keyword);
       });
     });
-
-    // 현재 TOP 10도 추가
     trendingData.slice(0, 10).forEach((item) => {
       keywordSet.add(item.keyword);
     });
 
-    // 현재 순위 기준으로 정렬 (현재 TOP 10 우선, 나머지는 알파벳순)
     const currentRanks = new Map(trendingData.map((t) => [t.keyword, t.rank]));
     return Array.from(keywordSet).sort((a, b) => {
       const rankA = currentRanks.get(a) ?? 999;
@@ -49,35 +43,28 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
     });
   }, [historyData, trendingData]);
 
-  // 현재 TOP 10 키워드 (UI 표시용)
   const currentTop10 = useMemo(() => {
     return new Set(trendingData.slice(0, 10).map((item) => item.keyword));
   }, [trendingData]);
 
-  // 선택된 키워드 상태 (기본값: 현재 TOP 5만 선택)
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(() => {
     return new Set(trendingData.slice(0, 5).map((t) => t.keyword));
   });
 
-  // 그래프용 데이터 변환
   const chartData = useMemo(() => {
     return historyData.map((entry) => {
       const dataPoint: Record<string, number | string | null> = {
         time: formatTime(entry.timestamp),
         timestamp: entry.timestamp,
       };
-
-      // 각 키워드의 순위 추가 (순위가 없으면 null로 표시)
       allKeywordsInHistory.forEach((keyword) => {
         const found = entry.keywords.find((k) => k.keyword === keyword);
         dataPoint[keyword] = found ? found.rank : null;
       });
-
       return dataPoint;
     });
   }, [historyData, allKeywordsInHistory]);
 
-  // 키워드 색상 매핑
   const keywordColors = useMemo(() => {
     const colors: Record<string, string> = {};
     allKeywordsInHistory.forEach((keyword, idx) => {
@@ -98,164 +85,159 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
     });
   };
 
-  const selectAll = () => {
-    setSelectedKeywords(new Set(allKeywordsInHistory));
-  };
-
-  const selectNone = () => {
-    setSelectedKeywords(new Set());
-  };
-
-  const selectCurrentTop10 = () => {
-    setSelectedKeywords(currentTop10);
-  };
+  const selectAll = () => setSelectedKeywords(new Set(allKeywordsInHistory));
+  const selectNone = () => setSelectedKeywords(new Set());
+  const selectCurrentTop10 = () => setSelectedKeywords(currentTop10);
 
   if (historyData.length === 0) {
     return (
-      <div className="text-center py-12 sm:py-16">
-        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
-            />
-          </svg>
-        </div>
-        <p className="text-slate-500 text-sm">히스토리 데이터가 없습니다</p>
-        <p className="text-slate-600 text-xs sm:text-sm mt-1">데이터가 수집되면 그래프가 표시됩니다</p>
+      <div className="text-center py-16">
+        <svg className="w-8 h-8 text-zinc-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+          />
+        </svg>
+        <p className="text-zinc-400 text-sm">히스토리 데이터가 없습니다</p>
+        <p className="text-zinc-600 text-xs mt-1">데이터가 수집되면 그래프가 표시됩니다</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-5">
       {/* 헤더 */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
-          <span className="w-1.5 h-5 sm:h-6 rounded-full bg-linear-to-b from-cyan-400 to-violet-500" />
-          <span className="hidden xs:inline">실시간 검색어 순위 변동 (최근 24시간)</span>
+        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+          <span className="hidden xs:inline">순위 변동 (최근 24시간)</span>
           <span className="xs:hidden">순위 변동 (24시간)</span>
         </h2>
 
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={selectCurrentTop10}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            className="px-3 py-1.5 text-xs rounded-md bg-zinc-900 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800 transition-colors">
             현재 TOP 10
           </button>
           <button
             onClick={selectAll}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            className="px-3 py-1.5 text-xs rounded-md bg-zinc-900 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800 transition-colors">
             전체 선택
           </button>
           <button
             onClick={selectNone}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-700/50 border border-slate-700/50 transition-colors">
+            className="px-3 py-1.5 text-xs rounded-md bg-zinc-900 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800 transition-colors">
             선택 해제
           </button>
         </div>
       </div>
 
       {/* 키워드 필터 */}
-      <div className="p-3 sm:p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
+      <div className="p-4 rounded-lg bg-zinc-900/50 border border-zinc-800">
         {/* 현재 TOP 10 */}
         <div className="mb-4">
-          <span className="text-[10px] text-emerald-400 font-medium mb-1.5 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="text-[10px] text-zinc-400 font-medium mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+            <span className="w-1 h-1 rounded-full bg-emerald-400" />
             현재 TOP 10
           </span>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {allKeywordsInHistory
               .filter((k) => currentTop10.has(k))
               .map((keyword) => {
                 const currentRank = trendingData.find((t) => t.keyword === keyword)?.rank;
+                const active = selectedKeywords.has(keyword);
                 return (
                   <button
                     key={keyword}
                     onClick={() => toggleKeyword(keyword)}
                     className={`
-                    flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                    transition-all duration-200 border
-                    ${
-                      selectedKeywords.has(keyword)
-                        ? "text-white shadow-lg border-transparent"
-                        : "bg-slate-800/50 text-slate-500 hover:text-slate-300 border-slate-700/50"
-                    }
-                  `}
+                      flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs
+                      transition-colors duration-150 border
+                      ${
+                        active
+                          ? "text-zinc-50 border-transparent"
+                          : "bg-zinc-900 text-zinc-500 hover:text-zinc-200 border-zinc-800"
+                      }
+                    `}
                     style={{
-                      backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
-                      boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
+                      backgroundColor: active ? `${keywordColors[keyword]}20` : undefined,
+                      borderColor: active ? `${keywordColors[keyword]}60` : undefined,
+                      color: active ? keywordColors[keyword] : undefined,
                     }}>
-                    <span className="font-bold mono text-[10px] opacity-70">#{currentRank}</span>
+                    <span className="font-semibold mono text-[10px] opacity-70">#{currentRank}</span>
                     <span>{keyword}</span>
                   </button>
                 );
               })}
           </div>
         </div>
-        {/* 과거 TOP 10 (현재는 빠진 키워드) */}
+        {/* 과거 TOP 10 */}
         {allKeywordsInHistory.filter((k) => !currentTop10.has(k)).length > 0 && (
           <div>
-            <span className="text-[10px] text-slate-500 font-medium mb-1.5 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-              과거 TOP 10 (현재 순위권 밖)
+            <span className="text-[10px] text-zinc-500 font-medium mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+              <span className="w-1 h-1 rounded-full bg-zinc-500" />
+              과거 TOP 10
             </span>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {allKeywordsInHistory
                 .filter((k) => !currentTop10.has(k))
-                .map((keyword) => (
-                  <button
-                    key={keyword}
-                    onClick={() => toggleKeyword(keyword)}
-                    className={`
-                    flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                    transition-all duration-200 border
-                    ${
-                      selectedKeywords.has(keyword)
-                        ? "text-white shadow-lg border-transparent"
-                        : "bg-slate-800/50 text-slate-600 hover:text-slate-400 border-slate-700/30 border-dashed"
-                    }
-                  `}
-                    style={{
-                      backgroundColor: selectedKeywords.has(keyword) ? keywordColors[keyword] : undefined,
-                      boxShadow: selectedKeywords.has(keyword) ? `0 4px 14px ${keywordColors[keyword]}40` : undefined,
-                    }}>
-                    <span className="font-bold mono text-[10px] opacity-50">-</span>
-                    <span>{keyword}</span>
-                  </button>
-                ))}
+                .map((keyword) => {
+                  const active = selectedKeywords.has(keyword);
+                  return (
+                    <button
+                      key={keyword}
+                      onClick={() => toggleKeyword(keyword)}
+                      className={`
+                        flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs
+                        transition-colors duration-150 border
+                        ${
+                          active
+                            ? "border-transparent"
+                            : "bg-zinc-900 text-zinc-600 hover:text-zinc-400 border-zinc-800"
+                        }
+                      `}
+                      style={{
+                        backgroundColor: active ? `${keywordColors[keyword]}20` : undefined,
+                        borderColor: active ? `${keywordColors[keyword]}60` : undefined,
+                        color: active ? keywordColors[keyword] : undefined,
+                      }}>
+                      <span className="font-semibold mono text-[10px] opacity-50">-</span>
+                      <span>{keyword}</span>
+                    </button>
+                  );
+                })}
             </div>
           </div>
         )}
       </div>
 
       {/* 그래프 */}
-      <div className="p-3 sm:p-6 rounded-xl bg-slate-800/30 border border-slate-700/50">
-        <ResponsiveContainer width="100%" height={300}>
+      <div className="p-4 sm:p-5 rounded-lg bg-zinc-900/50 border border-zinc-800">
+        <ResponsiveContainer width="100%" height={320}>
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
             <XAxis
               dataKey="time"
-              stroke="#64748b"
-              tick={{ fill: "#94a3b8", fontSize: 10 }}
-              tickLine={{ stroke: "#475569" }}
+              stroke="#52525b"
+              tick={{ fill: "#a1a1aa", fontSize: 10 }}
+              tickLine={{ stroke: "#3f3f46" }}
               interval="preserveStartEnd"
             />
             <YAxis
               reversed
               domain={[1, 10]}
               ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-              stroke="#64748b"
-              tick={{ fill: "#94a3b8", fontSize: 10 }}
-              tickLine={{ stroke: "#475569" }}
+              stroke="#52525b"
+              tick={{ fill: "#a1a1aa", fontSize: 10 }}
+              tickLine={{ stroke: "#3f3f46" }}
               width={30}
             />
             <Tooltip content={<CustomTooltip keywordColors={keywordColors} />} />
             <Legend
               wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
-              formatter={(value) => <span className="text-slate-300 text-xs sm:text-sm">{value}</span>}
+              formatter={(value) => <span className="text-zinc-300 text-xs">{value}</span>}
             />
 
             {allKeywordsInHistory
@@ -268,7 +250,7 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
                   stroke={keywordColors[keyword]}
                   strokeWidth={2}
                   dot={{ fill: keywordColors[keyword], strokeWidth: 0, r: 3 }}
-                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#18181b" }}
                   connectNulls={false}
                 />
               ))}
@@ -277,14 +259,13 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
       </div>
 
       {/* 범례 설명 */}
-      <div className="text-center text-xs sm:text-sm text-slate-500 px-4">
-        💡 그래프에서 순위가 낮을수록(1에 가까울수록) 상위권입니다
+      <div className="text-center text-xs text-zinc-500 px-4">
+        순위가 낮을수록(1에 가까울수록) 상위권입니다
       </div>
     </div>
   );
 }
 
-// 시간 포맷팅 함수
 function formatTime(timestamp: string): string {
   const date = new Date(timestamp);
   const hours = date.getHours().toString().padStart(2, "0");
@@ -292,7 +273,6 @@ function formatTime(timestamp: string): string {
   return `${hours}:${minutes}`;
 }
 
-// 커스텀 툴팁 컴포넌트
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{
@@ -307,7 +287,6 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label, keywordColors }: CustomTooltipProps) {
   if (!active || !payload) return null;
 
-  // 순위 기준으로 정렬 (null 값은 마지막으로)
   const sortedPayload = [...payload].sort((a, b) => {
     if (a.value === null) return 1;
     if (b.value === null) return -1;
@@ -315,18 +294,18 @@ function CustomTooltip({ active, payload, label, keywordColors }: CustomTooltipP
   });
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-xl p-3 sm:p-4 shadow-xl max-w-[200px] sm:max-w-none">
-      <div className="text-slate-400 text-[10px] sm:text-xs mb-2 sm:mb-3 font-medium">{label}</div>
-      <div className="space-y-1.5 sm:space-y-2">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-md p-3 shadow-lg max-w-[220px]">
+      <div className="text-zinc-400 text-xs mb-2 font-medium mono">{label}</div>
+      <div className="space-y-1.5">
         {sortedPayload.map((entry) => (
-          <div key={entry.dataKey} className="flex items-center gap-2 sm:gap-3">
+          <div key={entry.dataKey} className="flex items-center gap-2">
             <div
-              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ backgroundColor: keywordColors[entry.dataKey] }}
             />
-            <span className="text-slate-300 text-[10px] sm:text-sm flex-1 min-w-0 truncate">{entry.dataKey}</span>
+            <span className="text-zinc-300 text-xs flex-1 min-w-0 truncate">{entry.dataKey}</span>
             <span
-              className="font-bold mono text-[10px] sm:text-sm shrink-0"
+              className="font-semibold mono text-xs shrink-0"
               style={{ color: keywordColors[entry.dataKey] }}>
               {entry.value !== null ? `#${entry.value}` : "-"}
             </span>
