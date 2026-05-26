@@ -8,156 +8,231 @@ interface TrendingRankingsProps {
   data: LatestTrendingResponse;
 }
 
-export default function TrendingRankings({ data }: TrendingRankingsProps) {
-  const [selectedKeyword, setSelectedKeyword] = useState<TrendingItem | null>(null);
+// 카테고리 → 컬러 매핑 (단일 액센트 톤다운)
+type CategoryTone = {
+  dot: string;
+  text: string;
+};
 
-  const getRankBadgeStyle = (rank: number) => {
-    if (rank === 1) return "bg-zinc-100 text-zinc-900";
-    return "bg-zinc-800 text-zinc-400 border border-zinc-700";
-  };
+function getCategoryTone(rawCategory?: string): CategoryTone {
+  const c = (rawCategory || "").toLowerCase();
+  if (/정치|사회|시사/.test(rawCategory || "")) return { dot: "bg-rose-400", text: "text-rose-400" };
+  if (/연예|엔터|방송|드라마|영화|음악/.test(rawCategory || ""))
+    return { dot: "bg-violet-400", text: "text-violet-400" };
+  if (/스포츠|야구|축구|농구|배구|골프|e스포츠/.test(rawCategory || ""))
+    return { dot: "bg-emerald-400", text: "text-emerald-400" };
+  if (/it|게임|기술|테크|ai/.test(c)) return { dot: "bg-blue-400", text: "text-blue-400" };
+  if (/경제|금융|증시|주식|부동산/.test(rawCategory || ""))
+    return { dot: "bg-amber-400", text: "text-amber-400" };
+  if (/인물|배우|가수|아이돌|선수/.test(rawCategory || ""))
+    return { dot: "bg-sky-400", text: "text-sky-400" };
+  return { dot: "bg-zinc-500", text: "text-zinc-500" };
+}
+
+export default function TrendingRankings({ data }: TrendingRankingsProps) {
+  const top = data.trending.slice(0, 10);
+  const hero = top[0] || null;
+  const rest = top.slice(1);
+
+  const [selectedKeyword, setSelectedKeyword] = useState<TrendingItem | null>(hero);
+
+  if (top.length === 0) {
+    return <div className="text-center py-16 text-zinc-500 text-sm">데이터가 없습니다</div>;
+  }
 
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4">
-      {/* 순위 목록 */}
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold text-zinc-300 mb-3 tracking-wide uppercase">
-          실시간 검색어 TOP 10
-        </h2>
+    <div className="grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12">
+      {/* 좌측: 히어로 + 리스트 */}
+      <div>
+        {/* (A) 히어로 — #1 */}
+        {hero && <HeroFeature item={hero} onClick={() => setSelectedKeyword(hero)} active={selectedKeyword?._id === hero._id} />}
 
-        {data.trending.length === 0 ? (
-          <div className="text-center py-12 text-zinc-500 text-sm">데이터가 없습니다</div>
-        ) : (
-          <div className="space-y-1.5">
-            {data.trending.slice(0, 10).map((item) => (
-              <button
-                key={item._id}
-                onClick={() => setSelectedKeyword(item)}
-                className={`
-                  w-full group p-3 sm:p-4 rounded-lg border transition-colors duration-150 text-left
-                  ${
-                    selectedKeyword?._id === item._id
-                      ? "bg-zinc-900 border-zinc-700"
-                      : "bg-zinc-900/50 border-zinc-800 hover:bg-zinc-900 hover:border-zinc-700"
-                  }
-                `}>
-                <div className="flex items-center gap-3 sm:gap-4">
-                  {/* 순위 배지 */}
-                  <div
-                    className={`
-                      w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center
-                      font-semibold text-xs sm:text-sm mono shrink-0 ${getRankBadgeStyle(item.rank)}
-                    `}>
-                    {item.rank}
-                  </div>
+        {/* 섹션 라벨 */}
+        <div className="flex items-baseline justify-between mt-10 mb-2 pb-3 border-b border-zinc-900">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">More Trending</span>
+          <span className="mono tabular text-[10px] text-zinc-600">02 — {String(top.length).padStart(2, "0")}</span>
+        </div>
 
-                  {/* 키워드 정보 */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm sm:text-base text-zinc-100 truncate">
+        {/* (B) 2-10위 리스트 — 디바이더만 */}
+        <ul className="divide-y divide-zinc-900">
+          {rest.map((item) => {
+            const tone = getCategoryTone(item.aiAnalysis?.relatedInfo?.category);
+            const isSelected = selectedKeyword?._id === item._id;
+            return (
+              <li key={item._id}>
+                <button
+                  onClick={() => setSelectedKeyword(item)}
+                  className={`group w-full text-left grid grid-cols-[56px_1fr_auto] sm:grid-cols-[72px_1fr_auto] items-center gap-3 sm:gap-5 py-4 sm:py-5 transition-colors ${
+                    isSelected
+                      ? "bg-zinc-900/40 border-l border-zinc-100 pl-3 -ml-3"
+                      : "hover:bg-zinc-900/30"
+                  }`}>
+                  {/* 큰 모노 숫자 */}
+                  <span
+                    className={`mono tabular font-light text-2xl sm:text-3xl ${
+                      isSelected
+                        ? "text-zinc-100"
+                        : "text-zinc-600 group-hover:text-zinc-300"
+                    } transition-colors`}>
+                    {String(item.rank).padStart(2, "0")}
+                  </span>
+
+                  {/* 키워드 + 요약 */}
+                  <div className="min-w-0">
+                    <h3 className="font-display text-base sm:text-lg font-medium tracking-tight text-zinc-100 truncate">
                       {item.keyword}
                     </h3>
                     {item.aiAnalysis?.summary && (
-                      <p className="text-[11px] sm:text-sm text-zinc-500 line-clamp-2 sm:truncate mt-0.5">
+                      <p className="text-xs sm:text-sm text-zinc-500 line-clamp-1 mt-0.5">
                         {item.aiAnalysis.summary}
                       </p>
                     )}
                   </div>
 
-                  {/* 카테고리 태그 */}
-                  {item.aiAnalysis?.relatedInfo?.category && (
-                    <span className="hidden md:inline-flex px-2 py-0.5 rounded-md text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700 shrink-0">
-                      {item.aiAnalysis.relatedInfo.category}
-                    </span>
-                  )}
-
-                  {/* 화살표 */}
-                  <svg
-                    className={`w-4 h-4 transition-transform duration-150 shrink-0 ${
-                      selectedKeyword?._id === item._id
-                        ? "text-zinc-300 rotate-90"
-                        : "text-zinc-600 group-hover:text-zinc-400"
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+                  {/* 카테고리 */}
+                  {item.aiAnalysis?.relatedInfo?.category &&
+                    item.aiAnalysis.relatedInfo.category !== "-" && (
+                      <div className="hidden sm:flex items-center gap-2 shrink-0">
+                        <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                        <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">
+                          {item.aiAnalysis.relatedInfo.category}
+                        </span>
+                      </div>
+                    )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </div>
 
-      {/* 상세 정보 패널 */}
+      {/* 우측: 상세 패널 */}
       {selectedKeyword ? (
         <>
           {/* 모바일: 모달 */}
           <div className="lg:hidden fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-black/70" onClick={() => setSelectedKeyword(null)} />
-            <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 max-h-[80vh] overflow-hidden">
+            <div className="absolute inset-0 bg-black/80" onClick={() => setSelectedKeyword(null)} />
+            <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 max-h-[85vh] overflow-hidden bg-zinc-950 border border-zinc-900">
               <KeywordDetail item={selectedKeyword} onClose={() => setSelectedKeyword(null)} />
             </div>
           </div>
-          {/* 데스크톱: 사이드 패널 */}
-          <div className="hidden lg:block lg:sticky lg:top-6 h-fit">
-            <KeywordDetail item={selectedKeyword} onClose={() => setSelectedKeyword(null)} />
-          </div>
+          {/* 데스크탑: 사이드 패널 */}
+          <aside className="hidden lg:block lg:sticky lg:top-32 h-fit max-h-[calc(100vh-9rem)] overflow-y-auto pl-8 border-l border-zinc-900">
+            <KeywordDetail item={selectedKeyword} onClose={() => setSelectedKeyword(null)} embedded />
+          </aside>
         </>
       ) : (
-        <div className="hidden lg:flex rounded-lg border border-zinc-800 bg-zinc-900/30 p-8 text-center items-center justify-center">
-          <div>
-            <svg
-              className="w-8 h-8 text-zinc-600 mx-auto mb-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-zinc-500 text-sm">키워드를 선택하면 상세 정보가 표시됩니다</p>
-          </div>
-        </div>
+        <aside className="hidden lg:block pl-8 border-l border-zinc-900">
+          <p className="text-zinc-600 text-sm">키워드를 선택하면 상세 정보가 표시됩니다.</p>
+        </aside>
       )}
     </div>
   );
 }
 
+/* ----------------------------- Hero ----------------------------- */
+
+interface HeroProps {
+  item: TrendingItem;
+  onClick: () => void;
+  active: boolean;
+}
+
+function HeroFeature({ item, onClick, active }: HeroProps) {
+  const analysis = item.aiAnalysis;
+  const tone = getCategoryTone(analysis?.relatedInfo?.category);
+
+  return (
+    <button
+      onClick={onClick}
+      className="group w-full text-left block pb-8 sm:pb-10 border-b border-zinc-900">
+      {/* 메타 라인 */}
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">Top Story</span>
+        {analysis?.relatedInfo?.category && analysis.relatedInfo.category !== "-" && (
+          <>
+            <span className="text-zinc-800">·</span>
+            <div className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+              <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-400">
+                {analysis.relatedInfo.category}
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="flex items-start gap-5 sm:gap-8">
+        {/* 거대 모노 숫자 */}
+        <span className="mono tabular font-light text-6xl sm:text-8xl lg:text-9xl leading-none text-zinc-100 shrink-0">
+          01
+        </span>
+
+        {/* 키워드 + 요약 */}
+        <div className="flex-1 min-w-0 pt-1 sm:pt-3">
+          <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-zinc-50 leading-[1.05]">
+            {item.keyword}
+          </h2>
+          {analysis?.summary && (
+            <p className="mt-3 sm:mt-4 text-base sm:text-xl text-zinc-400 leading-snug max-w-2xl line-clamp-3">
+              {analysis.summary}
+            </p>
+          )}
+
+          {/* 메타데이터 inline */}
+          <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] sm:text-xs text-zinc-500">
+            {analysis?.relatedInfo?.occurredAt && analysis.relatedInfo.occurredAt !== "-" && (
+              <span className="mono tabular">{formatDate(analysis.relatedInfo.occurredAt)}</span>
+            )}
+            {analysis?.relatedInfo?.relatedPeople && analysis.relatedInfo.relatedPeople !== "-" && (
+              <span>
+                <span className="text-zinc-600">관련 인물 · </span>
+                <span className="text-zinc-300">{analysis.relatedInfo.relatedPeople}</span>
+              </span>
+            )}
+            <span
+              className={`ml-auto text-[11px] uppercase tracking-wider transition-colors ${
+                active ? "text-zinc-200" : "text-zinc-600 group-hover:text-zinc-300"
+              }`}>
+              자세히 →
+            </span>
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ----------------------------- Detail ----------------------------- */
+
 interface KeywordDetailProps {
   item: TrendingItem;
   onClose: () => void;
+  embedded?: boolean;
 }
 
-function KeywordDetail({ item, onClose }: KeywordDetailProps) {
+function KeywordDetail({ item, onClose, embedded = false }: KeywordDetailProps) {
   const analysis = item.aiAnalysis;
+  const tone = getCategoryTone(analysis?.relatedInfo?.category);
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden">
+    <div className={embedded ? "" : "p-5"}>
       {/* 헤더 */}
-      <div className="relative p-4 sm:p-5 border-b border-zinc-800">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 w-8 h-8 rounded-md hover:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-zinc-200 transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        <div className="flex items-center gap-3 sm:gap-4 pr-10">
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center font-semibold text-zinc-100 text-base mono shrink-0">
-            {item.rank}
-          </div>
+      <div className="flex items-start justify-between gap-3 pb-5 border-b border-zinc-900">
+        <div className="flex items-baseline gap-4 min-w-0">
+          <span className="mono tabular font-light text-3xl sm:text-4xl text-zinc-700 leading-none">
+            {String(item.rank).padStart(2, "0")}
+          </span>
           <div className="min-w-0">
-            <h2 className="text-base sm:text-lg font-semibold text-zinc-100 truncate">{item.keyword}</h2>
+            <h2 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-zinc-100 truncate">
+              {item.keyword}
+            </h2>
             <a
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-1 mt-1">
-              나무위키에서 보기
+              className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] uppercase tracking-wider text-zinc-500 hover:text-zinc-200 transition-colors">
+              나무위키
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -169,100 +244,114 @@ function KeywordDetail({ item, onClose }: KeywordDetailProps) {
             </a>
           </div>
         </div>
+
+        {!embedded && (
+          <button
+            onClick={onClose}
+            className="shrink-0 w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-zinc-200 transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
+      {/* 카테고리 inline */}
+      {analysis?.relatedInfo?.category && analysis.relatedInfo.category !== "-" && (
+        <div className="flex items-center gap-2 mt-4">
+          <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+          <span className="text-[10px] uppercase tracking-[0.18em] text-zinc-400">
+            {analysis.relatedInfo.category}
+          </span>
+        </div>
+      )}
+
       {/* 컨텐츠 */}
-      <div className="p-4 sm:p-5 space-y-5 max-h-[50vh] lg:max-h-[600px] overflow-y-auto">
+      <div className={`mt-6 space-y-7 ${embedded ? "" : "max-h-[55vh] overflow-y-auto"}`}>
         {analysis ? (
           <>
             {analysis.summary && (
               <Section title="요약">
-                <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">{analysis.summary}</p>
+                <p className="text-zinc-300 text-sm leading-relaxed">{analysis.summary}</p>
               </Section>
             )}
 
             {analysis.reason && (
-              <Section title="실검에 오른 이유">
-                <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">{analysis.reason}</p>
+              <Section title="실검 사유">
+                <p className="text-zinc-300 text-sm leading-relaxed">{analysis.reason}</p>
               </Section>
             )}
 
             {analysis.publicOpinion && (
-              <Section title="여론 및 반응">
-                <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">{analysis.publicOpinion}</p>
+              <Section title="여론">
+                <p className="text-zinc-300 text-sm leading-relaxed">{analysis.publicOpinion}</p>
               </Section>
             )}
 
             {analysis.relatedInfo && (
               <Section title="관련 정보">
-                <div className="grid grid-cols-2 gap-2">
-                  <InfoItem label="분류" value={analysis.relatedInfo.category} />
-                  <InfoItem label="관련 인물" value={analysis.relatedInfo.relatedPeople} />
-                  <InfoItem label="발생 시점" value={analysis.relatedInfo.occurredAt} />
-                  <InfoItem label="관련 키워드" value={analysis.relatedInfo.relatedKeywords} />
-                </div>
+                <dl className="divide-y divide-zinc-900">
+                  <DefRow label="분류" value={analysis.relatedInfo.category} />
+                  <DefRow label="관련 인물" value={analysis.relatedInfo.relatedPeople} />
+                  <DefRow
+                    label="발생 시점"
+                    value={
+                      analysis.relatedInfo.occurredAt && analysis.relatedInfo.occurredAt !== "-"
+                        ? formatDate(analysis.relatedInfo.occurredAt)
+                        : ""
+                    }
+                  />
+                  <DefRow label="관련 키워드" value={analysis.relatedInfo.relatedKeywords} />
+                </dl>
               </Section>
             )}
 
             {analysis.relatedLinks && analysis.relatedLinks.length > 0 && (
               <Section title="관련 링크">
-                <div className="space-y-1.5">
+                <ul className="divide-y divide-zinc-900">
                   {analysis.relatedLinks.map((link, idx) => (
-                    <a
-                      key={idx}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block p-3 rounded-md bg-zinc-950 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900 transition-colors group">
-                      <div className="font-medium text-zinc-200 text-xs sm:text-sm group-hover:text-blue-400 transition-colors truncate">
-                        {link.title}
-                      </div>
-                      {link.description && (
-                        <div className="text-[11px] sm:text-xs text-zinc-500 mt-1 line-clamp-2">
-                          {link.description}
+                    <li key={idx}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block py-3">
+                        <div className="text-sm text-zinc-200 group-hover:text-zinc-50 transition-colors leading-snug">
+                          {link.title}
                         </div>
-                      )}
-                    </a>
+                        {link.description && (
+                          <div className="text-xs text-zinc-500 mt-1 line-clamp-2">
+                            {link.description}
+                          </div>
+                        )}
+                      </a>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </Section>
             )}
 
             {analysis.relatedImages && analysis.relatedImages.length > 0 && (
               <Section title="관련 이미지">
-                <div className="flex flex-wrap gap-1.5">
+                <ul className="space-y-1.5">
                   {analysis.relatedImages.map((img, idx) => (
-                    <a
-                      key={idx}
-                      href={img.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-colors group text-xs">
-                      <svg
-                        className="w-3.5 h-3.5 text-zinc-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <span className="text-zinc-300 group-hover:text-zinc-100 transition-colors">
-                        {img.description || `이미지 ${idx + 1}`}
-                      </span>
-                    </a>
+                    <li key={idx}>
+                      <a
+                        href={img.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+                        <span className="text-zinc-700">↗</span>
+                        <span>{img.description || `이미지 ${idx + 1}`}</span>
+                      </a>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </Section>
             )}
           </>
         ) : (
-          <div className="text-center py-8 text-zinc-500">
-            <p className="text-xs sm:text-sm">AI 분석 결과가 없습니다</p>
-          </div>
+          <p className="text-sm text-zinc-500 py-8 text-center">AI 분석 결과가 없습니다</p>
         )}
       </div>
     </div>
@@ -276,19 +365,25 @@ interface SectionProps {
 
 function Section({ title, children }: SectionProps) {
   return (
-    <div className="space-y-2">
-      <h3 className="font-semibold text-zinc-400 text-[11px] uppercase tracking-wide">{title}</h3>
+    <div>
+      <h3 className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 mb-3">{title}</h3>
       {children}
     </div>
   );
 }
 
-interface InfoItemProps {
-  label: string;
-  value: string;
+function DefRow({ label, value }: { label: string; value: string }) {
+  if (!value || value === "-") return null;
+  return (
+    <div className="flex items-start gap-4 py-2.5">
+      <dt className="w-20 shrink-0 text-[11px] uppercase tracking-wider text-zinc-500 pt-0.5">
+        {label}
+      </dt>
+      <dd className="flex-1 text-sm text-zinc-200">{value}</dd>
+    </div>
+  );
 }
 
-// 날짜 포맷 함수
 function formatDate(value: string): string {
   const utcMatch = value.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})\s*UTC$/i);
   if (utcMatch) {
@@ -300,17 +395,4 @@ function formatDate(value: string): string {
     return parsed.format("YYYY. MM. DD. HH:mm:ss");
   }
   return value;
-}
-
-function InfoItem({ label, value }: InfoItemProps) {
-  if (!value || value === "-") return null;
-
-  const displayValue = label === "발생 시점" ? formatDate(value) : value;
-
-  return (
-    <div className="p-2.5 rounded-md bg-zinc-950 border border-zinc-800">
-      <div className="text-[10px] text-zinc-500 mb-1">{label}</div>
-      <div className="text-xs sm:text-sm text-zinc-200">{displayValue}</div>
-    </div>
-  );
 }

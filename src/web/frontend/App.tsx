@@ -27,7 +27,6 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 탭 변경 시 URL hash 업데이트
   useEffect(() => {
     if (typeof window === "undefined") return;
     const currentHash = window.location.hash.replace(/^#/, "");
@@ -36,14 +35,12 @@ export default function App() {
     }
   }, [activeTab]);
 
-  // 뒤로/앞으로 가기 대응
   useEffect(() => {
     const onHashChange = () => setActiveTab(getTabFromHash());
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  // 데이터 로드
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -72,65 +69,28 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-200">
-      <Header lastUpdated={latestData?.session?.createdAt || null} />
+    <div className="min-h-screen text-zinc-200">
+      <Header
+        lastUpdated={latestData?.session?.createdAt || null}
+        trending={latestData?.trending || []}
+      />
 
-      {/* 탭 네비게이션 */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6">
-        <div className="flex gap-1 p-1 bg-zinc-900/60 rounded-md border border-zinc-800">
-          <TabButton
-            active={activeTab === "rankings"}
-            onClick={() => setActiveTab("rankings")}
-            icon={
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-            }>
-            <span className="hidden xs:inline">실시간 순위</span>
-            <span className="xs:hidden">순위</span>
+      {/* 에디토리얼 탭 네비 (underline 스타일) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 border-b border-zinc-900">
+        <nav className="flex items-center gap-6 sm:gap-10 -mb-px">
+          <TabButton active={activeTab === "rankings"} onClick={() => setActiveTab("rankings")}>
+            실시간 순위
           </TabButton>
-          <TabButton
-            active={activeTab === "graph"}
-            onClick={() => setActiveTab("graph")}
-            icon={
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
-                />
-              </svg>
-            }>
-            <span className="hidden xs:inline">순위 변동</span>
-            <span className="xs:hidden">변동</span>
+          <TabButton active={activeTab === "graph"} onClick={() => setActiveTab("graph")}>
+            순위 변동
           </TabButton>
-          <TabButton
-            active={activeTab === "records"}
-            onClick={() => setActiveTab("records")}
-            icon={
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            }>
-            <span className="hidden xs:inline">순위 기록</span>
-            <span className="xs:hidden">기록</span>
+          <TabButton active={activeTab === "records"} onClick={() => setActiveTab("records")}>
+            순위 기록
           </TabButton>
-        </div>
+        </nav>
       </div>
 
-      {/* 메인 컨텐츠 */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {loading ? (
           <LoadingState />
         ) : error ? (
@@ -155,70 +115,58 @@ interface TabButtonProps {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
-  icon?: React.ReactNode;
 }
 
-function TabButton({ active, onClick, children, icon }: TabButtonProps) {
+function TabButton({ active, onClick, children }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
       className={`
-        flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm
-        transition-colors duration-150
-        ${
-          active
-            ? "bg-zinc-800 text-zinc-100 font-medium"
-            : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/60"
-        }
+        relative pb-3 text-sm sm:text-base tracking-tight transition-colors
+        ${active ? "text-zinc-100 font-medium" : "text-zinc-500 hover:text-zinc-300"}
       `}>
-      {icon}
       {children}
+      <span
+        className={`absolute left-0 right-0 -bottom-px h-px transition-colors ${
+          active ? "bg-zinc-100" : "bg-transparent"
+        }`}
+      />
     </button>
   );
 }
 
 function LoadingState() {
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4">
-      {/* 순위 목록 스켈레톤 */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="h-5 w-40 bg-zinc-800 rounded animate-pulse" />
+    <div className="grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12">
+      <div className="space-y-6">
+        {/* 1위 히어로 스켈레톤 */}
+        <div className="flex gap-6 pb-8 border-b border-zinc-900">
+          <div className="h-24 w-24 bg-zinc-900 rounded animate-pulse" />
+          <div className="flex-1 space-y-3">
+            <div className="h-8 w-48 bg-zinc-900 rounded animate-pulse" />
+            <div className="h-4 w-full bg-zinc-900/60 rounded animate-pulse" />
+            <div className="h-4 w-2/3 bg-zinc-900/60 rounded animate-pulse" />
+          </div>
         </div>
-
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div
-            key={i}
-            className="p-4 rounded-lg border border-zinc-800 bg-zinc-900/50"
-            style={{ animationDelay: `${i * 50}ms` }}>
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-9 h-9 rounded-md bg-zinc-800 animate-pulse shrink-0" />
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="h-4 w-32 bg-zinc-800 rounded animate-pulse" />
-                <div className="h-3 w-56 bg-zinc-800/60 rounded animate-pulse" />
+        {/* 리스트 */}
+        <div className="divide-y divide-zinc-900">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 py-4">
+              <div className="h-7 w-10 bg-zinc-900 rounded animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-40 bg-zinc-900 rounded animate-pulse" />
+                <div className="h-3 w-56 bg-zinc-900/60 rounded animate-pulse" />
               </div>
-              <div className="w-4 h-4 bg-zinc-800 rounded animate-pulse shrink-0" />
+              <div className="h-3 w-16 bg-zinc-900/60 rounded animate-pulse" />
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
-      {/* 상세 패널 스켈레톤 */}
-      <div className="hidden lg:block rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-md bg-zinc-800 animate-pulse" />
-            <div className="space-y-2 flex-1">
-              <div className="h-5 w-32 bg-zinc-800 rounded animate-pulse" />
-              <div className="h-3 w-24 bg-zinc-800/60 rounded animate-pulse" />
-            </div>
-          </div>
-          <div className="space-y-3 pt-4">
-            <div className="h-4 w-20 bg-zinc-800 rounded animate-pulse" />
-            <div className="h-3 w-full bg-zinc-800/60 rounded animate-pulse" />
-            <div className="h-3 w-4/5 bg-zinc-800/60 rounded animate-pulse" />
-            <div className="h-3 w-3/4 bg-zinc-800/60 rounded animate-pulse" />
-          </div>
+      <div className="hidden lg:block">
+        <div className="space-y-3">
+          <div className="h-6 w-32 bg-zinc-900 rounded animate-pulse" />
+          <div className="h-3 w-full bg-zinc-900/60 rounded animate-pulse" />
+          <div className="h-3 w-4/5 bg-zinc-900/60 rounded animate-pulse" />
         </div>
       </div>
     </div>
@@ -227,18 +175,9 @@ function LoadingState() {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-        <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      </div>
-      <p className="mt-4 text-red-400 text-sm">{message}</p>
+    <div className="flex flex-col items-center justify-center py-24">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-rose-400 mb-2">Error</div>
+      <p className="text-zinc-400 text-sm max-w-md text-center">{message}</p>
     </div>
   );
 }

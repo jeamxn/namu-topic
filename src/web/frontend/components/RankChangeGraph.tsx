@@ -8,15 +8,15 @@ interface RankChangeGraphProps {
   trendingData: TrendingItem[];
 }
 
-// 톤다운된 색상 팔레트 (다크 테마 친화적)
+// 카테고리 매핑과 톤 일치하는 팔레트
 const COLORS = [
   "#60a5fa", // blue-400
   "#a78bfa", // violet-400
   "#34d399", // emerald-400
   "#fbbf24", // amber-400
+  "#fb7185", // rose-400
+  "#38bdf8", // sky-400
   "#f472b6", // pink-400
-  "#22d3ee", // cyan-400
-  "#f87171", // red-400
   "#a3e635", // lime-400
   "#fb923c", // orange-400
   "#2dd4bf", // teal-400
@@ -107,41 +107,40 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* 헤더 */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
-          <span className="hidden xs:inline">순위 변동 (최근 24시간)</span>
-          <span className="xs:hidden">순위 변동 (24시간)</span>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 pb-4 border-b border-zinc-900">
+        <h2 className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+          순위 변동 · 최근 24시간
         </h2>
 
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-4 text-[11px] uppercase tracking-wider">
           <button
             onClick={selectCurrentTop10}
-            className="px-3 py-1.5 text-xs rounded-md bg-zinc-900 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800 transition-colors">
+            className="text-zinc-400 hover:text-zinc-100 transition-colors">
             현재 TOP 10
           </button>
           <button
             onClick={selectAll}
-            className="px-3 py-1.5 text-xs rounded-md bg-zinc-900 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800 transition-colors">
-            전체 선택
+            className="text-zinc-400 hover:text-zinc-100 transition-colors">
+            전체
           </button>
           <button
             onClick={selectNone}
-            className="px-3 py-1.5 text-xs rounded-md bg-zinc-900 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800 transition-colors">
-            선택 해제
+            className="text-zinc-400 hover:text-zinc-100 transition-colors">
+            해제
           </button>
         </div>
       </div>
 
       {/* 키워드 필터 */}
-      <div className="p-4 rounded-lg bg-zinc-900/50 border border-zinc-800">
+      <div className="space-y-5">
         {/* 현재 TOP 10 */}
-        <div className="mb-4">
-          <span className="text-[10px] text-zinc-400 font-medium mb-2 flex items-center gap-1.5 uppercase tracking-wide">
-            <span className="w-1 h-1 rounded-full bg-emerald-400" />
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 mb-3 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             현재 TOP 10
-          </span>
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {allKeywordsInHistory
               .filter((k) => currentTop10.has(k))
@@ -152,22 +151,17 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
                   <button
                     key={keyword}
                     onClick={() => toggleKeyword(keyword)}
-                    className={`
-                      flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs
-                      transition-colors duration-150 border
-                      ${
-                        active
-                          ? "text-zinc-50 border-transparent"
-                          : "bg-zinc-900 text-zinc-500 hover:text-zinc-200 border-zinc-800"
-                      }
-                    `}
+                    className={`mono tabular flex items-center gap-1.5 px-2.5 py-1 text-xs transition-colors ${
+                      active ? "text-zinc-50" : "text-zinc-500 hover:text-zinc-200"
+                    }`}
                     style={{
-                      backgroundColor: active ? `${keywordColors[keyword]}20` : undefined,
-                      borderColor: active ? `${keywordColors[keyword]}60` : undefined,
+                      borderBottom: `1px solid ${active ? keywordColors[keyword] : "transparent"}`,
                       color: active ? keywordColors[keyword] : undefined,
                     }}>
-                    <span className="font-semibold mono text-[10px] opacity-70">#{currentRank}</span>
-                    <span>{keyword}</span>
+                    <span className="opacity-60 text-[10px]">
+                      {String(currentRank ?? 0).padStart(2, "0")}
+                    </span>
+                    <span className="font-sans">{keyword}</span>
                   </button>
                 );
               })}
@@ -176,10 +170,10 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
         {/* 과거 TOP 10 */}
         {allKeywordsInHistory.filter((k) => !currentTop10.has(k)).length > 0 && (
           <div>
-            <span className="text-[10px] text-zinc-500 font-medium mb-2 flex items-center gap-1.5 uppercase tracking-wide">
-              <span className="w-1 h-1 rounded-full bg-zinc-500" />
+            <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
               과거 TOP 10
-            </span>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {allKeywordsInHistory
                 .filter((k) => !currentTop10.has(k))
@@ -189,22 +183,15 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
                     <button
                       key={keyword}
                       onClick={() => toggleKeyword(keyword)}
-                      className={`
-                        flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs
-                        transition-colors duration-150 border
-                        ${
-                          active
-                            ? "border-transparent"
-                            : "bg-zinc-900 text-zinc-600 hover:text-zinc-400 border-zinc-800"
-                        }
-                      `}
+                      className={`mono tabular flex items-center gap-1.5 px-2.5 py-1 text-xs transition-colors ${
+                        active ? "" : "text-zinc-600 hover:text-zinc-400"
+                      }`}
                       style={{
-                        backgroundColor: active ? `${keywordColors[keyword]}20` : undefined,
-                        borderColor: active ? `${keywordColors[keyword]}60` : undefined,
+                        borderBottom: `1px solid ${active ? keywordColors[keyword] : "transparent"}`,
                         color: active ? keywordColors[keyword] : undefined,
                       }}>
-                      <span className="font-semibold mono text-[10px] opacity-50">-</span>
-                      <span>{keyword}</span>
+                      <span className="opacity-40 text-[10px]">—</span>
+                      <span className="font-sans">{keyword}</span>
                     </button>
                   );
                 })}
@@ -214,30 +201,30 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
       </div>
 
       {/* 그래프 */}
-      <div className="p-4 sm:p-5 rounded-lg bg-zinc-900/50 border border-zinc-800">
-        <ResponsiveContainer width="100%" height={320}>
+      <div className="pt-4">
+        <ResponsiveContainer width="100%" height={360}>
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+            <CartesianGrid strokeDasharray="2 4" stroke="#18181b" />
             <XAxis
               dataKey="time"
-              stroke="#52525b"
-              tick={{ fill: "#a1a1aa", fontSize: 10 }}
-              tickLine={{ stroke: "#3f3f46" }}
+              stroke="#3f3f46"
+              tick={{ fill: "#71717a", fontSize: 10, fontFamily: "JetBrains Mono, ui-monospace, monospace" }}
+              tickLine={{ stroke: "#27272a" }}
               interval="preserveStartEnd"
             />
             <YAxis
               reversed
               domain={[1, 10]}
               ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-              stroke="#52525b"
-              tick={{ fill: "#a1a1aa", fontSize: 10 }}
-              tickLine={{ stroke: "#3f3f46" }}
+              stroke="#3f3f46"
+              tick={{ fill: "#71717a", fontSize: 10, fontFamily: "JetBrains Mono, ui-monospace, monospace" }}
+              tickLine={{ stroke: "#27272a" }}
               width={30}
             />
             <Tooltip content={<CustomTooltip keywordColors={keywordColors} />} />
             <Legend
-              wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
-              formatter={(value) => <span className="text-zinc-300 text-xs">{value}</span>}
+              wrapperStyle={{ paddingTop: "10px", fontSize: "11px" }}
+              formatter={(value) => <span className="text-zinc-400 text-xs">{value}</span>}
             />
 
             {allKeywordsInHistory
@@ -248,9 +235,9 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
                   type="monotone"
                   dataKey={keyword}
                   stroke={keywordColors[keyword]}
-                  strokeWidth={2}
-                  dot={{ fill: keywordColors[keyword], strokeWidth: 0, r: 3 }}
-                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#18181b" }}
+                  strokeWidth={1.5}
+                  dot={{ fill: keywordColors[keyword], strokeWidth: 0, r: 2 }}
+                  activeDot={{ r: 4, strokeWidth: 1.5, stroke: "#09090b" }}
                   connectNulls={false}
                 />
               ))}
@@ -258,9 +245,8 @@ export default function RankChangeGraph({ historyData, trendingData }: RankChang
         </ResponsiveContainer>
       </div>
 
-      {/* 범례 설명 */}
-      <div className="text-center text-xs text-zinc-500 px-4">
-        순위가 낮을수록(1에 가까울수록) 상위권입니다
+      <div className="text-center text-[11px] text-zinc-600 mono tabular">
+        y축: 순위(1 = 최상위) · x축: 시각
       </div>
     </div>
   );
