@@ -86,6 +86,7 @@ export interface TrendingWithReason {
   url: string; // 나무위키 URL
   reason: ArcaPostDetail | null; // 실검 이유 (아카라이브 게시글)
   namuwikiContent: string | null; // 나무위키 문서 본문 (최대 8000자)
+  namuwikiRelated: Array<{ title: string; url: string; summary: string }>; // 관련 문서 요약 (Stage 1)
 }
 
 // 크롤링 세션 문서 (사이클마다 고유 문서 생성)

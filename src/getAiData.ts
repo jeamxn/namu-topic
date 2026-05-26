@@ -145,9 +145,22 @@ const CONCURRENCY = 5; // 동시 호출 상한
 
 // 단일 항목 분석 (재시도 포함)
 const analyzeOne = async (item: TrendingWithReason): Promise<ParsedAiAnalysis | null> => {
-  const userPrompt = `아래 실시간 검색어 항목을 분석해주세요. reason 필드에 아카라이브 게시글 정보(본문, 댓글)가 포함되어 있습니다.
+  const relatedSection = item.namuwikiRelated && item.namuwikiRelated.length > 0
+    ? item.namuwikiRelated.map((r) => `- [${r.title}](${r.url})\n  ${r.summary}`).join("\n\n")
+    : "(없음)";
 
-${JSON.stringify(item, null, 2)}`;
+  const userPrompt = `# 분석 대상 키워드
+${item.rank}위: ${item.keyword}
+나무위키 URL: ${item.url}
+
+## 나무위키 본문
+${item.namuwikiContent ?? "(본문 없음)"}
+
+## 관련 문서 요약 (참고용)
+${relatedSection}
+
+## 아카라이브 게시글 (실검 사유, 본문+댓글)
+${item.reason ? JSON.stringify(item.reason, null, 2) : "(없음)"}`;
 
   for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
     try {
