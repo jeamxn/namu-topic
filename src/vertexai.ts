@@ -7,18 +7,8 @@ const clientEmail = Bun.env.VERTEX_CLIENT_EMAIL;
 const clientId = Bun.env.VERTEX_CLIENT_ID;
 const clientX509CertUrl = Bun.env.VERTEX_CLIENT_X509_CERT_URL;
 const privateKeyId = Bun.env.VERTEX_PRIVATE_KEY_ID;
-
-// PRIVATE KEY 로딩: base64(권장) → 평문(레거시) 순서로 시도
-const decodePrivateKey = (): string => {
-  const b64 = Bun.env.VERTEX_PRIVATE_KEY_B64;
-  if (b64) {
-    return Buffer.from(b64, "base64").toString("utf-8");
-  }
-  const raw = Bun.env.VERTEX_PRIVATE_KEY ?? "";
-  // .env 에서 \n 으로 이스케이프된 줄바꿈을 실제 줄바꿈으로 복원
-  return raw.replace(/\\n/g, "\n");
-};
-const privateKey = decodePrivateKey();
+// .env 에서 \n 으로 이스케이프된 줄바꿈을 실제 줄바꿈으로 복원
+const privateKey = (Bun.env.VERTEX_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
 const dnsMappingRaw = Bun.env.VERTEX_DNS_MAPPING;
 
 if (!projectId) {
