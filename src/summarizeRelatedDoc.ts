@@ -1,5 +1,6 @@
 import { getNamuwikiContent, type NamuwikiRelatedLink } from "./getTrendingKeywords";
 import { generateText } from "./vertexai";
+import log from "./logger";
 
 const SUMMARY_SYSTEM = `당신은 사실 중심으로 문서를 요약하는 뉴스 데스크입니다.
 주어진 나무위키 문서를 평가/감상/추측 없이 사실 위주로 한국어 250자 이내로 압축 요약합니다.
@@ -30,8 +31,10 @@ export const summarizeRelatedDocs = async (
   links: NamuwikiRelatedLink[],
 ): Promise<RelatedDocSummary[]> => {
   if (links.length === 0) return [];
+  log.step("summary", `${links.length}개 관련 문서 요약 시작 (동시성 ${CONCURRENCY})`);
   const out: RelatedDocSummary[] = [];
   const cursor = { i: 0 };
+  let done = 0;
   const runners = Array.from({ length: Math.min(CONCURRENCY, links.length) }, async () => {
     while (true) {
       const idx = cursor.i++;
@@ -41,11 +44,15 @@ export const summarizeRelatedDocs = async (
       try {
         const r = await summarizeRelatedDoc(link.title, link.url);
         if (r) out.push(r);
+        done += 1;
+        log.progress("summary", done, links.length, link.title);
       } catch (err) {
-        console.log(`⚠️ 관련 문서 요약 실패 [${link.title}]:`, (err as Error).message);
+        done += 1;
+        log.warn("summary", `관련 문서 요약 실패 [${link.title}]: ${(err as Error).message}`);
       }
     }
   });
   await Promise.all(runners);
+  log.ok("summary", `요약 완료: ${out.length}/${links.length}`);
   return out;
 };

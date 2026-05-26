@@ -1,6 +1,7 @@
 import type { ObjectId } from "mongodb";
 import { getDB } from "./mongodb";
 import type { TrendingDocument, TrendingWithReason } from "./types";
+import log from "./logger";
 
 const COLLECTION_NAME = "trending_snapshots";
 
@@ -27,7 +28,7 @@ export const saveTrendingData = async (
   }));
 
   const result = await collection.insertMany(documents);
-  console.log(`💾 trending_snapshots 저장 완료 (${result.insertedCount}개 문서)`);
+  log.ok("db", `trending_snapshots 저장 완료 (${result.insertedCount}개 문서)`);
 
   // 순위별 insertedId 매핑 반환
   return trendingData

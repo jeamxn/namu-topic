@@ -8,6 +8,7 @@ import saveArcaliveSnapshot from "./saveArcaliveSnapshot";
 import saveCrawlSession, { updateCrawlSessionDone } from "./saveCrawlSession";
 import saveTrendingData from "./saveTrendingData";
 import startWebServer from "./web/server";
+import log from "./logger";
 
 const QUEUE_NAME = "namu-topic-trending";
 const JOB_NAME = "collect-trending";
@@ -19,8 +20,9 @@ const redisConnection = {
 
 // 작업 처리 함수
 const processJob = async (): Promise<void> => {
-  const startTime = new Date();
-  console.log(`\n🕐 [${startTime.toLocaleString("ko-KR")}] 작업 시작...`);
+  const startTime = Date.now();
+  log.divider("CRAWL CYCLE");
+  log.step("main", "사이클 시작");
 
   try {
     // 1. 크롤 세션 생성 (사이클마다 고유 문서)
@@ -28,6 +30,7 @@ const processJob = async (): Promise<void> => {
 
     // 2. 실시간 검색어 + 이유 수집
     const results = await getAllTrendingWithReasons();
+    log.metric("main", `${results.length}개 키워드 수집 완료`);
 
     // 3. trending_snapshots에 저장 (rank, keyword, url만 저장)
     const savedTrending = await saveTrendingData(results, crawlSessionId);
@@ -37,7 +40,7 @@ const processJob = async (): Promise<void> => {
 
     // 5. AI 분석 실행 (순위별 파싱)
     const aiAnalyses = await getAiData(results);
-    console.log(JSON.stringify(aiAnalyses, null, 2));
+    log.metric("main", `${aiAnalyses.length}개 AI 분석 완료`);
 
     // 6. ai_analyses에 저장 (trending_snapshots._id와 FK 연결, rank 제외)
     await saveAiAnalysis(aiAnalyses, savedTrending);
@@ -45,17 +48,19 @@ const processJob = async (): Promise<void> => {
     // 7. 크롤 세션 완료 처리
     await updateCrawlSessionDone(crawlSessionId);
 
-    console.log(`✅ [${new Date().toLocaleString("ko-KR")}] 작업 완료!`);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    log.ok("main", `사이클 완료 (소요 ${elapsed}s)`);
+    log.divider();
   } catch (error) {
-    console.error(`❌ [${new Date().toLocaleString("ko-KR")}] 작업 실패:`, error);
+    log.error("main", "작업 실패", error);
     throw error; // BullMQ가 재시도할 수 있도록 에러 던지기
   }
 };
 
 const main = async (): Promise<void> => {
-  console.log("🚀 나무위키 실시간 검색어 수집기 시작");
-  console.log(`📡 Redis 연결: ${redisConnection.host}:${redisConnection.port}`);
-  console.log(`⏰ 10분 간격으로 실행됩니다.\n`);
+  log.divider("나무위키 실시간 검색어 수집기");
+  log.info("main", `Redis 연결: ${redisConnection.host}:${redisConnection.port}`);
+  log.info("main", "10분 간격으로 실행됩니다.");
 
   // MongoDB 연결
   await connectDB();
@@ -82,15 +87,15 @@ const main = async (): Promise<void> => {
 
   // Worker 이벤트 핸들러
   worker.on("completed", (job) => {
-    console.log(`📋 Job ${job.id} 완료`);
+    log.ok("queue", `Job ${job.id} 완료`);
   });
 
   worker.on("failed", (job, err) => {
-    console.error(`📋 Job ${job?.id} 실패:`, err.message);
+    log.error("queue", `Job ${job?.id} 실패`, err.message);
   });
 
   worker.on("error", (err) => {
-    console.error("Worker 에러:", err);
+    log.error("worker", "Worker 에러", err);
   });
 
   // 기존 반복 작업 제거 후 새로 등록
@@ -119,12 +124,12 @@ const main = async (): Promise<void> => {
     },
   );
 
-  console.log("✅ BullMQ Worker 시작됨");
-  console.log("📋 10분 간격 반복 작업 등록됨\n");
+  log.ok("queue", "BullMQ Worker 시작됨");
+  log.info("queue", "10분 간격 반복 작업 등록됨");
 
   // 종료 시그널 처리
   const gracefulShutdown = async (signal: string) => {
-    console.log(`\n\n👋 ${signal} 신호 감지...`);
+    log.warn("main", `${signal} 신호 감지, 종료 중...`);
     await worker.close();
     await queue.close();
     webServer.stop();
@@ -136,4 +141,4 @@ const main = async (): Promise<void> => {
   process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 };
 
-main().catch(console.error);
+main().catch((err) => log.error("main", "치명적 에러", err));

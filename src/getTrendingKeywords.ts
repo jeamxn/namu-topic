@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 
 import instance from "./instance";
 import type { TrendingKeyword } from "./types";
+import log from "./logger";
 
 const getTrendingKeywords = async (): Promise<TrendingKeyword[]> => {
   const response = await instance("https://namu.wiki/w/나무위키:대문");
@@ -120,7 +121,7 @@ export const getNamuwikiContent = async (url: string): Promise<NamuwikiContentRe
     if (!text) return { content: null, relatedLinks };
     return { content: text.slice(0, 8000), relatedLinks };
   } catch (err) {
-    console.error(`나무위키 본문 추출 실패 (${url}):`, (err as Error).message);
+    log.error("namuwiki", `본문 추출 실패 (${url})`, (err as Error).message);
     return { content: null, relatedLinks: [] };
   }
 };

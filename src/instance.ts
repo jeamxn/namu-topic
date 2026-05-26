@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import type { FlareSolverrRequest, FlareSolverrResponse } from "./types"; // 위에서 만든 타입 import
+import log from "./logger";
 
 const FLARESOLVERR_URL = `${Bun.env.PROXY_URL}v1`;
 
@@ -21,11 +22,7 @@ const instance = async (targetUrl: string): Promise<FlareSolverrResponse["soluti
       throw new Error(`FlareSolverr Error: ${data.message}`);
     }
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("❌ Request Failed:", error.message);
-    } else {
-      console.error("❌ Request Failed:", error);
-    }
+    log.error("http", "Request Failed", error);
     throw error;
   }
 };

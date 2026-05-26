@@ -1,6 +1,7 @@
 import { getDB } from "./mongodb";
 import type { SavedTrendingResult } from "./saveTrendingData";
 import type { ArcaliveSnapshotDocument, TrendingWithReason } from "./types";
+import log from "./logger";
 
 const COLLECTION_NAME = "arcalive_snapshots";
 
@@ -27,12 +28,12 @@ export const saveArcaliveSnapshot = async (
     .filter((doc): doc is ArcaliveSnapshotDocument => doc !== null);
 
   if (documents.length === 0) {
-    console.log("⚠️ 저장할 아카라이브 스냅샷이 없습니다.");
+    log.warn("db", "저장할 아카라이브 스냅샷이 없습니다.");
     return;
   }
 
   const result = await collection.insertMany(documents);
-  console.log(`💾 arcalive_snapshots 저장 완료 (${result.insertedCount}개 문서)`);
+  log.ok("db", `arcalive_snapshots 저장 완료 (${result.insertedCount}개 문서)`);
 };
 
 export default saveArcaliveSnapshot;

@@ -1,5 +1,6 @@
 import { generateText } from "./vertexai";
 import type { ParsedAiAnalysis, RelatedImage, RelatedInfo, RelatedLink, TrendingWithReason } from "./types";
+import log from "./logger";
 
 // 섹션별 내용 추출 헬퍼
 const extractSection = (content: string, sectionName: string): string => {
@@ -144,7 +145,11 @@ const MAX_RETRY_ATTEMPTS = 3;
 const CONCURRENCY = 5; // 동시 호출 상한
 
 // 단일 항목 분석 (재시도 포함)
-const analyzeOne = async (item: TrendingWithReason): Promise<ParsedAiAnalysis | null> => {
+const analyzeOne = async (
+  item: TrendingWithReason,
+  onDone: () => void,
+  total: number,
+): Promise<ParsedAiAnalysis | null> => {
   const relatedSection = item.namuwikiRelated && item.namuwikiRelated.length > 0
     ? item.namuwikiRelated.map((r) => `- [${r.title}](${r.url})\n  ${r.summary}`).join("\n\n")
     : "(없음)";
@@ -166,18 +171,25 @@ ${item.reason ? JSON.stringify(item.reason, null, 2) : "(없음)"}`;
     try {
       const content = await generateText({ system: SYSTEM_PROMPT, user: userPrompt });
       const parsed = parseSingleAnalysis(content, item);
-      if (parsed) return parsed;
-      console.log(`⚠️ [${item.rank}위 ${item.keyword}] 파싱 실패 (시도 ${attempt}/${MAX_RETRY_ATTEMPTS})`);
+      if (parsed) {
+        onDone();
+        log.progress("ai", doneCounter.value, total, `${item.rank}위 ${item.keyword}`);
+        return parsed;
+      }
+      log.warn("ai", `[${item.rank}위 ${item.keyword}] 파싱 실패 (시도 ${attempt}/${MAX_RETRY_ATTEMPTS})`);
     } catch (err) {
-      console.log(
-        `⚠️ [${item.rank}위 ${item.keyword}] 호출 실패 (시도 ${attempt}/${MAX_RETRY_ATTEMPTS}):`,
-        (err as Error).message,
+      log.warn(
+        "ai",
+        `[${item.rank}위 ${item.keyword}] 호출 실패 (시도 ${attempt}/${MAX_RETRY_ATTEMPTS}): ${(err as Error).message}`,
       );
     }
   }
-  console.log(`❌ [${item.rank}위 ${item.keyword}] 최종 실패, 건너뜀`);
+  onDone();
+  log.error("ai", `[${item.rank}위 ${item.keyword}] 최종 실패, 건너뜀`);
   return null;
 };
+
+const doneCounter = { value: 0 };
 
 // 동시성 제한 풀
 const runWithConcurrency = async <T, R>(
@@ -201,12 +213,18 @@ const runWithConcurrency = async <T, R>(
 };
 
 const getAiData = async (results: TrendingWithReason[]): Promise<ParsedAiAnalysis[]> => {
-  console.log(`🤖 ${results.length}개 항목 병렬 분석 시작 (동시성 ${CONCURRENCY})`);
-
-  const analyses = await runWithConcurrency(results, CONCURRENCY, analyzeOne);
+  log.step("ai", `${results.length}개 항목 병렬 분석 시작 (동시성 ${CONCURRENCY})`);
+  doneCounter.value = 0;
+  const total = results.length;
+  const onDone = () => {
+    doneCounter.value += 1;
+  };
+  const analyses = await runWithConcurrency(results, CONCURRENCY, (item) =>
+    analyzeOne(item, onDone, total),
+  );
   const parsed = analyses.filter((a): a is ParsedAiAnalysis => a !== null);
 
-  console.log(`🤖 분석 완료: ${parsed.length}/${results.length}개 성공`);
+  log.ok("ai", `분석 완료: ${parsed.length}/${results.length}개 성공`);
   return parsed;
 };
 

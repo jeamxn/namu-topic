@@ -1,4 +1,5 @@
 import { type Db, MongoClient } from "mongodb";
+import log from "./logger";
 
 const MONGODB_URI = Bun.env.MONGODB_URI || "mongodb://mongodb:27017";
 const DB_NAME = "namu_topic";
@@ -13,7 +14,7 @@ export const connectDB = async (): Promise<Db> => {
   await client.connect();
   db = client.db(DB_NAME);
 
-  console.log("✅ MongoDB 연결 성공");
+  log.ok("db.conn", "MongoDB 연결 성공");
   return db;
 };
 
@@ -29,7 +30,7 @@ export const closeDB = async (): Promise<void> => {
     await client.close();
     client = null;
     db = null;
-    console.log("🔌 MongoDB 연결 종료");
+    log.info("db.conn", "MongoDB 연결 종료");
   }
 };
 

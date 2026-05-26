@@ -1,6 +1,7 @@
 import { getDB } from "./mongodb";
 import type { SavedTrendingResult } from "./saveTrendingData";
 import type { AiAnalysisDocument, ParsedAiAnalysis } from "./types";
+import log from "./logger";
 
 const COLLECTION_NAME = "ai_analyses";
 
@@ -31,12 +32,12 @@ export const saveAiAnalysis = async (
     .filter((doc): doc is AiAnalysisDocument => doc !== null);
 
   if (documents.length === 0) {
-    console.log("⚠️ 저장할 AI 분석 결과가 없습니다.");
+    log.warn("db", "저장할 AI 분석 결과가 없습니다.");
     return;
   }
 
   const result = await collection.insertMany(documents);
-  console.log(`💾 ai_analyses 저장 완료 (${result.insertedCount}개 문서)`);
+  log.ok("db", `ai_analyses 저장 완료 (${result.insertedCount}개 문서)`);
 };
 
 export default saveAiAnalysis;

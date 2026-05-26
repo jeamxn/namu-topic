@@ -3,6 +3,7 @@ import type { Db } from "mongodb";
 
 import { getDB } from "../mongodb";
 import homepage from "./public/index.html";
+import log from "../logger";
 
 // API 응답 헬퍼
 const json = (data: unknown, status = 200) => {
@@ -178,7 +179,7 @@ export const startWebServer = (port = 3000) => {
             const data = await getLatestTrending(db);
             return json(data);
           } catch (err) {
-            console.error("Error fetching latest trending:", err);
+            log.error("web", "Error fetching latest trending", err);
             return error("트렌딩 데이터를 가져오는데 실패했습니다.", 500);
           }
         },
@@ -193,7 +194,7 @@ export const startWebServer = (port = 3000) => {
             const data = await getTrendingHistory(db, hours);
             return json(data);
           } catch (err) {
-            console.error("Error fetching trending history:", err);
+            log.error("web", "Error fetching trending history", err);
             return error("히스토리 데이터를 가져오는데 실패했습니다.", 500);
           }
         },
@@ -208,7 +209,7 @@ export const startWebServer = (port = 3000) => {
           const data = await getKeywordRankHistory(db, keyword, hours);
           return json(data);
         } catch (err) {
-          console.error("Error fetching keyword history:", err);
+          log.error("web", "Error fetching keyword history", err);
           return error("키워드 히스토리를 가져오는데 실패했습니다.", 500);
         }
       },
@@ -223,7 +224,7 @@ export const startWebServer = (port = 3000) => {
             const data = await getTrendingRecords(db, page, limit);
             return json(data);
           } catch (err) {
-            console.error("Error fetching trending records:", err);
+            log.error("web", "Error fetching trending records", err);
             return error("기록 데이터를 가져오는데 실패했습니다.", 500);
           }
         },
@@ -267,7 +268,7 @@ export const startWebServer = (port = 3000) => {
               aiAnalysis: aiAnalysis || null,
             });
           } catch (err) {
-            console.error("Error fetching keyword detail:", err);
+            log.error("web", "Error fetching keyword detail", err);
             return error("키워드 상세 정보를 가져오는데 실패했습니다.", 500);
           }
         },
@@ -295,7 +296,7 @@ export const startWebServer = (port = 3000) => {
     },
   });
 
-  console.log(`🌐 웹 대시보드 서버 시작: ${server.url}`);
+  log.ok("web", `웹 대시보드 서버 시작: ${server.url}`);
   return server;
 };
 

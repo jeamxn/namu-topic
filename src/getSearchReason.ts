@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 
 import instance from "./instance";
 import type { ArcaComment, ArcaPost, ArcaPostDetail, SearchReasonResult } from "./types";
+import log from "./logger";
 
 const ARCA_BASE_URL = "https://arca.live";
 const NAMUHOTNOW_URL = `${ARCA_BASE_URL}/b/namuhotnow`;
@@ -131,7 +132,7 @@ export const getPostDetail = async (postId: string): Promise<ArcaPostDetail | nu
       comments,
     };
   } catch (error) {
-    console.error(`게시글 ${postId} 조회 실패:`, error);
+    log.error("arcalive", `게시글 ${postId} 조회 실패`, error);
     return null;
   }
 };
@@ -142,7 +143,7 @@ export const getPostDetail = async (postId: string): Promise<ArcaPostDetail | nu
  * @returns 검색 결과 (게시글 목록)
  */
 export const getSearchReason = async (keyword: string): Promise<SearchReasonResult> => {
-  console.log(`🔍 "${keyword}" 실검 이유 검색 중...`);
+  log.info("arcalive", `"${keyword}" 실검 이유 검색 중...`);
   const posts = await searchPosts(keyword);
 
   return {
@@ -160,17 +161,17 @@ export const getSearchReasonDetail = async (keyword: string): Promise<ArcaPostDe
   const result = await getSearchReason(keyword);
 
   if (result.posts.length === 0) {
-    console.log(`❌ "${keyword}"에 대한 게시글을 찾을 수 없습니다.`);
+    log.warn("arcalive", `"${keyword}"에 대한 게시글을 찾을 수 없습니다.`);
     return null;
   }
 
   // 첫 번째 게시글의 상세 정보 조회
   const firstPost = result.posts[0];
   if (!firstPost) {
-    console.log(`❌ "${keyword}"에 대한 유효한 게시글이 없습니다.`);
+    log.warn("arcalive", `"${keyword}"에 대한 유효한 게시글이 없습니다.`);
     return null;
   }
-  console.log(`📄 게시글 상세 조회: ${firstPost.title}`);
+  log.info("arcalive", `게시글 상세 조회: ${firstPost.title}`);
 
   return getPostDetail(firstPost.id);
 };
