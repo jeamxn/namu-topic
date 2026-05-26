@@ -69,14 +69,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen text-zinc-200">
+    <div className="min-h-screen text-zinc-800 dark:text-zinc-200">
       <Header
         lastUpdated={latestData?.session?.createdAt || null}
         trending={latestData?.trending || []}
       />
 
       {/* 에디토리얼 탭 네비 (underline 스타일) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 border-b border-zinc-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 border-b border-zinc-200 dark:border-zinc-900">
         <nav className="flex items-center gap-6 sm:gap-10 -mb-px">
           <TabButton active={activeTab === "rankings"} onClick={() => setActiveTab("rankings")}>
             실시간 순위
@@ -123,12 +123,12 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
       onClick={onClick}
       className={`
         relative pb-3 text-sm sm:text-base tracking-tight transition-colors
-        ${active ? "text-zinc-100 font-medium" : "text-zinc-500 hover:text-zinc-300"}
+        ${active ? "text-zinc-900 dark:text-zinc-100 font-medium" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}
       `}>
       {children}
       <span
         className={`absolute left-0 right-0 -bottom-px h-px transition-colors ${
-          active ? "bg-zinc-100" : "bg-transparent"
+          active ? "bg-zinc-900 dark:bg-zinc-100" : "bg-transparent"
         }`}
       />
     </button>
@@ -140,33 +140,33 @@ function LoadingState() {
     <div className="grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12">
       <div className="space-y-6">
         {/* 1위 히어로 스켈레톤 */}
-        <div className="flex gap-6 pb-8 border-b border-zinc-900">
-          <div className="h-24 w-24 bg-zinc-900 rounded animate-pulse" />
+        <div className="flex gap-6 pb-8 border-b border-zinc-200 dark:border-zinc-900">
+          <div className="h-24 w-24 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
           <div className="flex-1 space-y-3">
-            <div className="h-8 w-48 bg-zinc-900 rounded animate-pulse" />
-            <div className="h-4 w-full bg-zinc-900/60 rounded animate-pulse" />
-            <div className="h-4 w-2/3 bg-zinc-900/60 rounded animate-pulse" />
+            <div className="h-8 w-48 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
+            <div className="h-4 w-full bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
+            <div className="h-4 w-2/3 bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
           </div>
         </div>
         {/* 리스트 */}
-        <div className="divide-y divide-zinc-900">
+        <div className="divide-y divide-zinc-200 dark:divide-zinc-900">
           {Array.from({ length: 9 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4 py-4">
-              <div className="h-7 w-10 bg-zinc-900 rounded animate-pulse" />
+              <div className="h-7 w-10 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-40 bg-zinc-900 rounded animate-pulse" />
-                <div className="h-3 w-56 bg-zinc-900/60 rounded animate-pulse" />
+                <div className="h-4 w-40 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
+                <div className="h-3 w-56 bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
               </div>
-              <div className="h-3 w-16 bg-zinc-900/60 rounded animate-pulse" />
+              <div className="h-3 w-16 bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
             </div>
           ))}
         </div>
       </div>
       <div className="hidden lg:block">
         <div className="space-y-3">
-          <div className="h-6 w-32 bg-zinc-900 rounded animate-pulse" />
-          <div className="h-3 w-full bg-zinc-900/60 rounded animate-pulse" />
-          <div className="h-3 w-4/5 bg-zinc-900/60 rounded animate-pulse" />
+          <div className="h-6 w-32 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
+          <div className="h-3 w-full bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
+          <div className="h-3 w-4/5 bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
         </div>
       </div>
     </div>
@@ -177,7 +177,7 @@ function ErrorState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-24">
       <div className="text-[10px] uppercase tracking-[0.2em] text-rose-400 mb-2">Error</div>
-      <p className="text-zinc-400 text-sm max-w-md text-center">{message}</p>
+      <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md text-center">{message}</p>
     </div>
   );
 }

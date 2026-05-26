@@ -68,15 +68,15 @@ export default function TrendingRecords({ data, onPageChange }: TrendingRecordsP
   return (
     <div>
       {/* 헤더 */}
-      <div className="flex items-baseline justify-between gap-2 pb-4 border-b border-zinc-900">
+      <div className="flex items-baseline justify-between gap-2 pb-4 border-b border-zinc-200 dark:border-zinc-900">
         <h2 className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">Archive · 순위 기록</h2>
-        <span className="mono tabular text-[11px] text-zinc-600">
+        <span className="mono tabular text-[11px] text-zinc-400 dark:text-zinc-600">
           {pagination.total.toLocaleString()} entries
         </span>
       </div>
 
       {/* 타임라인 */}
-      <div className="divide-y divide-zinc-900">
+      <div className="divide-y divide-zinc-200 dark:divide-zinc-900">
         {records.map((record, idx) => (
           <RecordRow
             key={record.sessionId}
@@ -126,7 +126,7 @@ function RecordRow({ record, formatDateTime, getRelativeTime, isLatest, onKeywor
       {/* 좌측: 시간 앵커 */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <span className="mono tabular text-xl sm:text-2xl font-light text-zinc-100 leading-none">
+          <span className="mono tabular text-xl sm:text-2xl font-light text-zinc-900 dark:text-zinc-100 leading-none">
             {time}
           </span>
           {isLatest && (
@@ -134,7 +134,7 @@ function RecordRow({ record, formatDateTime, getRelativeTime, isLatest, onKeywor
           )}
         </div>
         <div className="text-[11px] text-zinc-500">{date}</div>
-        <div className="text-[10px] text-zinc-600">{getRelativeTime(record.timestamp)}</div>
+        <div className="text-[10px] text-zinc-400 dark:text-zinc-600">{getRelativeTime(record.timestamp)}</div>
       </div>
 
       {/* 우측: 키워드 그리드 */}
@@ -146,12 +146,12 @@ function RecordRow({ record, formatDateTime, getRelativeTime, isLatest, onKeywor
             className="flex items-center gap-2 py-1 text-left group">
             <span
               className={`mono tabular text-xs shrink-0 ${
-                item.rank === 1 ? "text-zinc-100" : "text-zinc-600"
-              } group-hover:text-zinc-200 transition-colors`}>
+                item.rank === 1 ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600"
+              } group-hover:text-zinc-800 dark:group-hover:text-zinc-200 transition-colors`}>
               {String(item.rank).padStart(2, "0")}
             </span>
             <span
-              className="text-xs sm:text-sm text-zinc-400 group-hover:text-zinc-100 transition-colors truncate"
+              className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors truncate"
               title={item.keyword}>
               {item.keyword}
             </span>
@@ -186,16 +186,16 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
-      <div className="relative w-full max-w-xl max-h-[85vh] overflow-hidden bg-zinc-950 border border-zinc-900">
+      <div className="absolute inset-0 bg-zinc-900/40 dark:bg-black/80" onClick={onClose} />
+      <div className="relative w-full max-w-xl max-h-[85vh] overflow-hidden bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900">
         {/* 헤더 */}
-        <div className="flex items-start justify-between gap-3 p-5 sm:p-6 border-b border-zinc-900">
+        <div className="flex items-start justify-between gap-3 p-5 sm:p-6 border-b border-zinc-200 dark:border-zinc-900">
           <div className="flex items-baseline gap-4 min-w-0">
-            <span className="mono tabular font-light text-3xl sm:text-4xl text-zinc-700 leading-none">
+            <span className="mono tabular font-light text-3xl sm:text-4xl text-zinc-300 dark:text-zinc-700 leading-none">
               {String(rank).padStart(2, "0")}
             </span>
             <div className="min-w-0">
-              <h2 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-zinc-100 truncate">
+              <h2 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
                 {keyword}
               </h2>
               {detail?.trending?.url && (
@@ -203,7 +203,7 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
                   href={detail.trending.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] uppercase tracking-wider text-zinc-500 hover:text-zinc-200 transition-colors">
+                  className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] uppercase tracking-wider text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">
                   나무위키
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -219,7 +219,7 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-zinc-200 transition-colors">
+            className="shrink-0 w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -230,32 +230,32 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
         <div className="p-5 sm:p-6 space-y-7 max-h-[65vh] overflow-y-auto">
           {loading ? (
             <div className="space-y-5">
-              <div className="h-3 w-16 bg-zinc-900 rounded animate-pulse" />
-              <div className="h-3 w-full bg-zinc-900/60 rounded animate-pulse" />
-              <div className="h-3 w-4/5 bg-zinc-900/60 rounded animate-pulse" />
-              <div className="h-3 w-24 bg-zinc-900 rounded animate-pulse mt-6" />
-              <div className="h-3 w-full bg-zinc-900/60 rounded animate-pulse" />
+              <div className="h-3 w-16 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse" />
+              <div className="h-3 w-full bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
+              <div className="h-3 w-4/5 bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
+              <div className="h-3 w-24 bg-zinc-100 dark:bg-zinc-900 rounded animate-pulse mt-6" />
+              <div className="h-3 w-full bg-zinc-100/60 dark:bg-zinc-900/60 rounded animate-pulse" />
             </div>
           ) : analysis ? (
             <>
               {analysis.summary && (
                 <ModalSection title="요약">
-                  <p className="text-zinc-300 text-sm leading-relaxed">{analysis.summary}</p>
+                  <p className="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">{analysis.summary}</p>
                 </ModalSection>
               )}
               {analysis.reason && (
                 <ModalSection title="실검 사유">
-                  <p className="text-zinc-300 text-sm leading-relaxed">{analysis.reason}</p>
+                  <p className="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">{analysis.reason}</p>
                 </ModalSection>
               )}
               {analysis.publicOpinion && (
                 <ModalSection title="여론">
-                  <p className="text-zinc-300 text-sm leading-relaxed">{analysis.publicOpinion}</p>
+                  <p className="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">{analysis.publicOpinion}</p>
                 </ModalSection>
               )}
               {analysis.relatedInfo && (
                 <ModalSection title="관련 정보">
-                  <dl className="divide-y divide-zinc-900">
+                  <dl className="divide-y divide-zinc-200 dark:divide-zinc-900">
                     <DefRow label="분류" value={analysis.relatedInfo.category} />
                     <DefRow label="관련 인물" value={analysis.relatedInfo.relatedPeople} />
                     <DefRow
@@ -272,7 +272,7 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
               )}
               {analysis.relatedLinks && analysis.relatedLinks.length > 0 && (
                 <ModalSection title="관련 링크">
-                  <ul className="divide-y divide-zinc-900">
+                  <ul className="divide-y divide-zinc-200 dark:divide-zinc-900">
                     {analysis.relatedLinks.map((link, idx) => (
                       <li key={idx}>
                         <a
@@ -280,7 +280,7 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
                           target="_blank"
                           rel="noopener noreferrer"
                           className="group block py-3">
-                          <div className="text-sm text-zinc-200 group-hover:text-zinc-50 leading-snug">
+                          <div className="text-sm text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-zinc-50 leading-snug">
                             {link.title}
                           </div>
                           {link.description && (
@@ -303,8 +303,8 @@ function KeywordDetailModal({ keyword, rank, detail, loading, onClose }: Keyword
                           href={img.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100">
-                          <span className="text-zinc-700">↗</span>
+                          className="inline-flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                          <span className="text-zinc-300 dark:text-zinc-700">↗</span>
                           <span>{img.description || `이미지 ${idx + 1}`}</span>
                         </a>
                       </li>
@@ -338,7 +338,7 @@ function DefRow({ label, value }: { label: string; value: string }) {
       <dt className="w-20 shrink-0 text-[11px] uppercase tracking-wider text-zinc-500 pt-0.5">
         {label}
       </dt>
-      <dd className="flex-1 text-sm text-zinc-200">{value}</dd>
+      <dd className="flex-1 text-sm text-zinc-800 dark:text-zinc-200">{value}</dd>
     </div>
   );
 }
@@ -377,14 +377,14 @@ function Pagination({ current, total, onChange }: PaginationProps) {
         onClick={() => onChange(current - 1)}
         disabled={current === 1}
         className={`px-3 py-2 text-xs uppercase tracking-wider transition-colors ${
-          current === 1 ? "text-zinc-700 cursor-not-allowed" : "text-zinc-400 hover:text-zinc-100"
+          current === 1 ? "text-zinc-300 dark:text-zinc-700 cursor-not-allowed" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
         }`}>
         ← Prev
       </button>
       <div className="flex">
         {getPageNumbers().map((page, idx) =>
           page === "..." ? (
-            <span key={`e-${idx}`} className="w-9 h-9 flex items-center justify-center text-zinc-600 text-sm">
+            <span key={`e-${idx}`} className="w-9 h-9 flex items-center justify-center text-zinc-400 dark:text-zinc-600 text-sm">
               ···
             </span>
           ) : (
@@ -393,8 +393,8 @@ function Pagination({ current, total, onChange }: PaginationProps) {
               onClick={() => onChange(page)}
               className={`mono tabular w-9 h-9 text-sm transition-colors ${
                 current === page
-                  ? "text-zinc-100 font-medium border-b border-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-200"
+                  ? "text-zinc-900 dark:text-zinc-100 font-medium border-b border-zinc-900 dark:border-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
               }`}>
               {page}
             </button>
@@ -405,7 +405,7 @@ function Pagination({ current, total, onChange }: PaginationProps) {
         onClick={() => onChange(current + 1)}
         disabled={current === total}
         className={`px-3 py-2 text-xs uppercase tracking-wider transition-colors ${
-          current === total ? "text-zinc-700 cursor-not-allowed" : "text-zinc-400 hover:text-zinc-100"
+          current === total ? "text-zinc-300 dark:text-zinc-700 cursor-not-allowed" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
         }`}>
         Next →
       </button>
