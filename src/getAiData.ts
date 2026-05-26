@@ -25,7 +25,6 @@ const parseRelatedInfo = (content: string): RelatedInfo => {
   };
 };
 
-// 관련 링크 파싱: "- [링크 제목](URL) - 간단한 설명"
 const parseRelatedLinks = (content: string): RelatedLink[] => {
   const section = extractSection(content, "관련 링크");
   if (!section) return [];
@@ -34,7 +33,6 @@ const parseRelatedLinks = (content: string): RelatedLink[] => {
   const lines = section.split("\n").filter((line) => line.startsWith("-"));
 
   for (const line of lines) {
-    // [제목](URL) - 설명 패턴 매칭
     const match = line.match(/\[([^\]]+)\]\(([^)]+)\)(?:\s*-\s*(.+))?/);
     if (match) {
       links.push({
@@ -48,7 +46,6 @@ const parseRelatedLinks = (content: string): RelatedLink[] => {
   return links;
 };
 
-// 관련 이미지 파싱: "- [이미지 설명](이미지 URL)"
 const parseRelatedImages = (content: string): RelatedImage[] => {
   const section = extractSection(content, "관련 이미지");
   if (!section) return [];
@@ -57,7 +54,6 @@ const parseRelatedImages = (content: string): RelatedImage[] => {
   const lines = section.split("\n").filter((line) => line.startsWith("-"));
 
   for (const line of lines) {
-    // [설명](URL) 패턴 매칭
     const match = line.match(/\[([^\]]+)\]\(([^)]+)\)/);
     if (match) {
       images.push({
@@ -70,49 +66,30 @@ const parseRelatedImages = (content: string): RelatedImage[] => {
   return images;
 };
 
-// AI 분석 결과를 순위별로 파싱
-const parseAiAnalysis = (content: string, results: TrendingWithReason[]): ParsedAiAnalysis[] => {
-  const parsed: ParsedAiAnalysis[] = [];
+// 단일 항목 응답을 ParsedAiAnalysis로 변환 (헤더 형식: "# [순위]위: [검색어]")
+const parseSingleAnalysis = (
+  content: string,
+  trendingItem: TrendingWithReason,
+): ParsedAiAnalysis | null => {
+  // 헤더가 있어야 본문 시작으로 간주
+  if (!/# \d+위:/.test(content)) return null;
 
-  // "# [순위]위:" 패턴으로 분리
-  const sections = content.split(/(?=# \d+위:)/);
+  const summaryRaw = extractSection(content, "한줄 요약");
+  const summary = summaryRaw.replace(/^>\s*/, "").trim();
 
-  for (const section of sections) {
-    if (!section.trim()) continue;
-
-    // 순위 추출
-    const rankMatch = section.match(/# (\d+)위:/);
-    if (!rankMatch?.[1]) continue;
-
-    const rank = Number.parseInt(rankMatch[1], 10);
-    const trendingItem = results.find((r) => r.rank === rank);
-
-    if (trendingItem) {
-      // 한줄 요약에서 ">" 인용 표시 제거
-      const summaryRaw = extractSection(section, "한줄 요약");
-      const summary = summaryRaw.replace(/^>\s*/, "").trim();
-
-      parsed.push({
-        rank,
-        keyword: trendingItem.keyword,
-        summary,
-        reason: extractSection(section, "왜 실검에 올랐나\\?"),
-        publicOpinion: extractSection(section, "여론 및 반응"),
-        relatedInfo: parseRelatedInfo(section),
-        relatedLinks: parseRelatedLinks(section),
-        relatedImages: parseRelatedImages(section),
-      });
-    }
-  }
-
-  return parsed;
+  return {
+    rank: trendingItem.rank,
+    keyword: trendingItem.keyword,
+    summary,
+    reason: extractSection(content, "왜 실검에 올랐나\\?"),
+    publicOpinion: extractSection(content, "여론 및 반응"),
+    relatedInfo: parseRelatedInfo(content),
+    relatedLinks: parseRelatedLinks(content),
+    relatedImages: parseRelatedImages(content),
+  };
 };
 
-const MAX_RETRY_ATTEMPTS = 3;
-const MIN_PARSE_SUCCESS_RATIO = 0.5; // 최소 50% 이상 파싱 성공해야 함
-
-const callAiForAnalysis = async (results: TrendingWithReason[]): Promise<string> => {
-  const system = `당신은 뉴스 기사 작성 전문 및 검색어 분석 전문 기자입니다.
+const SYSTEM_PROMPT = `당신은 뉴스 기사 작성 전문 및 검색어 분석 전문 기자입니다.
 
 ## 역할
 - 실시간 검색어가 왜 떠올랐는지 뉴스 기사 형식으로 보도합니다.
@@ -129,11 +106,11 @@ const callAiForAnalysis = async (results: TrendingWithReason[]): Promise<string>
 2. 코드 블록(\`\`\`)으로 감싸지 마세요.
 3. JSON, XML 등 다른 형식을 사용하지 마세요.
 4. 불필요한 서문이나 맺음말 없이 바로 본문을 시작하세요.
-5. 각 검색어는 아래 템플릿을 **정확히** 따르세요.
+5. 아래 템플릿을 **정확히** 따르세요.
 6. 정보가 불확실하면 추측하지 말고 "정보 부족"으로 표기하세요.
 7. 모든 섹션을 반드시 포함하세요. 비어있어도 섹션 제목은 출력하세요.
 
-## 출력 템플릿 (각 검색어마다 반복)
+## 출력 템플릿
 
 # [순위]위: [검색어]
 
@@ -163,43 +140,61 @@ const callAiForAnalysis = async (results: TrendingWithReason[]): Promise<string>
 - [이미지 설명](이미지 url) - 간단한 설명
 (데이터에 포함된 이미지들을 같은 형식으로 나열)`;
 
-  const user = `아래 실시간 검색어 데이터를 분석해주세요. 각 항목의 reason 필드에 아카라이브 게시글 정보(본문, 댓글)가 포함되어 있습니다:
+const MAX_RETRY_ATTEMPTS = 3;
+const CONCURRENCY = 5; // 동시 호출 상한
 
-${JSON.stringify(results, null, 2)}`;
+// 단일 항목 분석 (재시도 포함)
+const analyzeOne = async (item: TrendingWithReason): Promise<ParsedAiAnalysis | null> => {
+  const userPrompt = `아래 실시간 검색어 항목을 분석해주세요. reason 필드에 아카라이브 게시글 정보(본문, 댓글)가 포함되어 있습니다.
 
-  return await generateText({ system, user });
+${JSON.stringify(item, null, 2)}`;
+
+  for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+    try {
+      const content = await generateText({ system: SYSTEM_PROMPT, user: userPrompt });
+      const parsed = parseSingleAnalysis(content, item);
+      if (parsed) return parsed;
+      console.log(`⚠️ [${item.rank}위 ${item.keyword}] 파싱 실패 (시도 ${attempt}/${MAX_RETRY_ATTEMPTS})`);
+    } catch (err) {
+      console.log(
+        `⚠️ [${item.rank}위 ${item.keyword}] 호출 실패 (시도 ${attempt}/${MAX_RETRY_ATTEMPTS}):`,
+        (err as Error).message,
+      );
+    }
+  }
+  console.log(`❌ [${item.rank}위 ${item.keyword}] 최종 실패, 건너뜀`);
+  return null;
+};
+
+// 동시성 제한 풀
+const runWithConcurrency = async <T, R>(
+  items: T[],
+  limit: number,
+  worker: (item: T) => Promise<R>,
+): Promise<R[]> => {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const idx = cursor++;
+      if (idx >= items.length) return;
+      const item = items[idx];
+      if (item === undefined) return;
+      results[idx] = await worker(item);
+    }
+  });
+  await Promise.all(runners);
+  return results;
 };
 
 const getAiData = async (results: TrendingWithReason[]): Promise<ParsedAiAnalysis[]> => {
-  const expectedCount = results.length;
-  const minSuccessCount = Math.ceil(expectedCount * MIN_PARSE_SUCCESS_RATIO);
+  console.log(`🤖 ${results.length}개 항목 병렬 분석 시작 (동시성 ${CONCURRENCY})`);
 
-  for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
-    console.log(`🤖 실시간 검색어 분석 중... (시도 ${attempt}/${MAX_RETRY_ATTEMPTS})`);
+  const analyses = await runWithConcurrency(results, CONCURRENCY, analyzeOne);
+  const parsed = analyses.filter((a): a is ParsedAiAnalysis => a !== null);
 
-    const content = await callAiForAnalysis(results);
-    console.log(content);
-
-    const parsed = parseAiAnalysis(content, results);
-    console.log(`🤖 파싱 결과: ${parsed.length}/${expectedCount}개 성공`);
-
-    // 파싱 성공률이 충분하면 반환
-    if (parsed.length >= minSuccessCount) {
-      console.log("🤖 실시간 검색어 분석 완료!");
-      return parsed;
-    }
-
-    // 마지막 시도가 아니면 재시도 안내
-    if (attempt < MAX_RETRY_ATTEMPTS) {
-      console.log(`⚠️ 파싱 결과 부족 (${parsed.length}/${minSuccessCount} 필요), 재시도합니다...`);
-    } else {
-      console.log(`⚠️ 최대 재시도 횟수 도달, 마지막 결과로 진행합니다.`);
-      return parsed;
-    }
-  }
-
-  // 여기 도달하면 안 되지만 타입 안전을 위해
-  return [];
+  console.log(`🤖 분석 완료: ${parsed.length}/${results.length}개 성공`);
+  return parsed;
 };
 
 export default getAiData;
