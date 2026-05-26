@@ -69,7 +69,7 @@ export default function TrendingRankings({ data }: TrendingRankingsProps) {
                   }`}>
                   {/* 큰 모노 숫자 */}
                   <span
-                    className={`mono tabular font-light text-2xl sm:text-3xl ${
+                    className={`mono tabular font-bold text-2xl sm:text-3xl ${
                       isSelected
                         ? "text-zinc-100"
                         : "text-zinc-600 group-hover:text-zinc-300"
@@ -164,13 +164,13 @@ function HeroFeature({ item, onClick, active }: HeroProps) {
 
       <div className="flex items-start gap-5 sm:gap-8">
         {/* 거대 모노 숫자 */}
-        <span className="mono tabular font-light text-6xl sm:text-8xl lg:text-9xl leading-none text-zinc-100 shrink-0">
+        <span className="mono tabular font-black text-6xl sm:text-8xl lg:text-9xl leading-none text-zinc-100 shrink-0">
           01
         </span>
 
         {/* 키워드 + 요약 */}
         <div className="flex-1 min-w-0 pt-1 sm:pt-3">
-          <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-zinc-50 leading-[1.05]">
+          <h2 className="font-display text-3xl sm:text-5xl font-black tracking-tight text-zinc-50 leading-[1.05]">
             {item.keyword}
           </h2>
           {analysis?.summary && (
