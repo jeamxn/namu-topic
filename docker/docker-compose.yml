@@ -22,6 +22,9 @@ services:
         condition: service_started
     networks:
       - namu-topic-network
+    extra_hosts:
+      # 사설 Vertex AI 엔드포인트 (VPC peering / Private Service Connect)
+      - "asia-northeast3-aiplatform.googleapis.com:10.37.1.100"
 
   redis:
     image: redis:7-alpine

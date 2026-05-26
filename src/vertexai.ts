@@ -43,35 +43,16 @@ const credentials = {
   universe_domain: "googleapis.com",
 };
 
-// 선택: 사설 엔드포인트 매핑 (VERTEX_DNS_MAPPING="aiplatform.googleapis.com=custom.endpoint.example.com")
-let httpOptions: { baseUrl?: string } | undefined;
-if (dnsMappingRaw) {
-  try {
-    // JSON 형태 ({"aiplatform.googleapis.com":"my-endpoint"})
-    const parsed = JSON.parse(dnsMappingRaw);
-    const target = parsed?.["aiplatform.googleapis.com"] || parsed?.aiplatform;
-    if (target) {
-      httpOptions = { baseUrl: target.startsWith("http") ? target : `https://${target}` };
-    }
-  } catch {
-    // key=value;key=value 형태
-    const entries = dnsMappingRaw.split(/[;,]/).map((s) => s.trim()).filter(Boolean);
-    for (const e of entries) {
-      const [k, v] = e.split("=").map((s) => s?.trim());
-      if (k && v && k.includes("aiplatform")) {
-        httpOptions = { baseUrl: v.startsWith("http") ? v : `https://${v}` };
-        break;
-      }
-    }
-  }
-}
+// VERTEX_DNS_MAPPING은 DNS 차원 매핑(예: asia-northeast3-aiplatform.googleapis.com=10.37.1.100)
+// → 코드에서 HTTP baseUrl로 강제하지 않음. 도커의 extra_hosts나 호스트 파일로 해결할 것.
+// (예전 코드에서 baseUrl로 박으면 IP에 직접 붙어서 TLS/라우팅 실패함)
+void dnsMappingRaw;
 
 const ai = new GoogleGenAI({
   vertexai: true,
   project: projectId,
   location,
   googleAuthOptions: { credentials },
-  ...(httpOptions ? { httpOptions } : {}),
 });
 
 export const VERTEX_MODEL = Bun.env.VERTEX_MODEL || "gemini-3.5-flash";
