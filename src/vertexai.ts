@@ -74,7 +74,7 @@ const ai = new GoogleGenAI({
   ...(httpOptions ? { httpOptions } : {}),
 });
 
-export const VERTEX_MODEL = Bun.env.VERTEX_MODEL || "gemini-2.5-flash";
+export const VERTEX_MODEL = Bun.env.VERTEX_MODEL || "gemini-3.5-flash";
 
 export interface ChatMessage {
   system: string;
