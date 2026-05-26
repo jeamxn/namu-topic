@@ -10,14 +10,38 @@ import type { HistoryEntry, LatestTrendingResponse, RecordsResponse } from "./ty
 
 type TabType = "rankings" | "graph" | "records";
 
+const VALID_TABS: TabType[] = ["rankings", "graph", "records"];
+
+const getTabFromHash = (): TabType => {
+  if (typeof window === "undefined") return "rankings";
+  const hash = window.location.hash.replace(/^#/, "") as TabType;
+  return VALID_TABS.includes(hash) ? hash : "rankings";
+};
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabType>("rankings");
+  const [activeTab, setActiveTab] = useState<TabType>(getTabFromHash);
   const [latestData, setLatestData] = useState<LatestTrendingResponse | null>(null);
   const [historyData, setHistoryData] = useState<HistoryEntry[]>([]);
   const [recordsData, setRecordsData] = useState<RecordsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // 탭 변경 시 URL hash 업데이트
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentHash = window.location.hash.replace(/^#/, "");
+    if (currentHash !== activeTab) {
+      window.history.replaceState(null, "", `#${activeTab}`);
+    }
+  }, [activeTab]);
+
+  // 뒤로/앞으로 가기 대응
+  useEffect(() => {
+    const onHashChange = () => setActiveTab(getTabFromHash());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   // 데이터 로드
   useEffect(() => {
