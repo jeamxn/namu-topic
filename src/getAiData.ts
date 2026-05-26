@@ -1,4 +1,4 @@
-import openai from "./openai";
+import { generateText } from "./vertexai";
 import type { ParsedAiAnalysis, RelatedImage, RelatedInfo, RelatedLink, TrendingWithReason } from "./types";
 
 // 섹션별 내용 추출 헬퍼
@@ -112,12 +112,7 @@ const MAX_RETRY_ATTEMPTS = 3;
 const MIN_PARSE_SUCCESS_RATIO = 0.5; // 최소 50% 이상 파싱 성공해야 함
 
 const callAiForAnalysis = async (results: TrendingWithReason[]): Promise<string> => {
-  const data = await openai.chat.completions.create({
-    model: "gpt-5-nano-2025-08-07",
-    messages: [
-      {
-        role: "system",
-        content: `당신은 뉴스 기사 작성 전문 및 검색어 분석 전문 기자입니다.
+  const system = `당신은 뉴스 기사 작성 전문 및 검색어 분석 전문 기자입니다.
 
 ## 역할
 - 실시간 검색어가 왜 떠올랐는지 뉴스 기사 형식으로 보도합니다.
@@ -166,18 +161,13 @@ const callAiForAnalysis = async (results: TrendingWithReason[]): Promise<string>
 
 ## 관련 이미지
 - [이미지 설명](이미지 url) - 간단한 설명
-(데이터에 포함된 이미지들을 같은 형식으로 나열)`,
-      },
-      {
-        role: "user",
-        content: `아래 실시간 검색어 데이터를 분석해주세요. 각 항목의 reason 필드에 아카라이브 게시글 정보(본문, 댓글)가 포함되어 있습니다:
+(데이터에 포함된 이미지들을 같은 형식으로 나열)`;
 
-${JSON.stringify(results, null, 2)}`,
-      },
-    ],
-  });
+  const user = `아래 실시간 검색어 데이터를 분석해주세요. 각 항목의 reason 필드에 아카라이브 게시글 정보(본문, 댓글)가 포함되어 있습니다:
 
-  return data.choices[0]?.message?.content ?? "";
+${JSON.stringify(results, null, 2)}`;
+
+  return await generateText({ system, user });
 };
 
 const getAiData = async (results: TrendingWithReason[]): Promise<ParsedAiAnalysis[]> => {

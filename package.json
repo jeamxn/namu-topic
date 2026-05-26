@@ -26,7 +26,7 @@
     "dayjs": "^1.11.19",
     "marked": "^17.0.1",
     "mongodb": "^7.0.0",
-    "openai": "^6.15.0",
+    "@google/genai": "^1.0.0",
     "pdfkit": "^0.17.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
